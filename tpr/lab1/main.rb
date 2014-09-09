@@ -54,26 +54,45 @@ class Learning
     end
     probable_type == type ? true : false
   end
+
+  def check_raspozn_ability(values_to_check, type)
+    direction_cosines_count = euclidean_metric_count = tanimoto_count = 0
+    values_to_check.each do |elem|
+      direction_cosines_count += 1 if check_by_direction_cosines(Vector.elements(elem), type)
+      euclidean_metric_count += 1 if check_by_euclidean_metric(Vector.elements(elem), type)
+      tanimoto_count += 1 if check_by_tanimoto(Vector.elements(elem), type)
+    end
+    puts "Direction cosines classifier ability is: #{100.0 * direction_cosines_count / VALUES_COUNT}%"
+    puts "Euclidean metric classifier ability is: #{100.0 * euclidean_metric_count / VALUES_COUNT}%"
+    puts "Tanimoto classifier ability is: #{100.0 * tanimoto_count / VALUES_COUNT}%"
+  end
+end
+
+def read_file
+  File.foreach("sample.iris.data") do |line|
+    next if line == "\n"
+    value = line.split(',')
+    @data[value[4].chomp] = @data[value[4].chomp] << value[0..2].collect { |i| i.to_f }
+  end
+end
+
+def init_training_sets
+  iris = Learning.new
+  iris.set_training_set(@data['Iris-setosa'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-setosa')
+  iris.set_training_set(@data['Iris-versicolor'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-versicolor')
+  iris.set_training_set(@data['Iris-virginica'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-virginica')
+  iris.check_raspozn_ability(@data['Iris-virginica'], 'Iris-virginica')
 end
 
 
 
 @data = Hash.new { |hash, key| hash[key] = [] }
-
-File.foreach("sample.iris.data") do |line|
-  next if line == "\n"
-  value = line.split(',')
-  @data[value[4].chomp] = @data[value[4].chomp] << value[0..2].collect { |i| i.to_f }
-end
+read_file
+init_training_sets
 
 
-iris = Learning.new
-iris.set_training_set(@data['Iris-setosa'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-setosa')
-iris.set_training_set(@data['Iris-versicolor'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-versicolor')
-iris.set_training_set(@data['Iris-virginica'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-virginica')
-
-i = 0
-Vector.elements(@data['Iris-virginica']).each do |elem|
-  i += 1 if iris.check_by_tanimoto(Vector.elements(elem), 'Iris-virginica')
-end
-puts "Classifier ability is: #{100.0 * i / VALUES_COUNT}%"
+# i = 0
+# Vector.elements(@data['Iris-virginica']).each do |elem|
+#   i += 1 if iris.check_by_tanimoto(Vector.elements(elem), 'Iris-virginica')
+# end
+# puts "Classifier ability is: #{100.0 * i / VALUES_COUNT}%"
