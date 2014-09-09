@@ -1,6 +1,6 @@
 OBJ_PARENT = main.o
 OBJ_CHILD = child.o
-CFLAGS = -Wall -std=c99
+CFLAGS = -Wall
 
 all: bin child
 
@@ -15,3 +15,5 @@ child: $(OBJ_CHILD)
 
 clean:
 	rm bin child $(OBJ_PARENT) $(OBJ_CHILD)
+
+rebuild: clean all
