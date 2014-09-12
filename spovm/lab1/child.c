@@ -23,6 +23,23 @@ void string_to_file(char *str, FILE *file)
     fprintf(file, "%s", str);
 }
 
+void print_sorted_string(char *str)
+{
+    initscr();
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_CYAN);
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);
+
+    attron(COLOR_PAIR(1));
+    printw("Sorted string: %s\n", str);
+    attron(COLOR_PAIR(2));
+    printw("Also available in output file\n");
+    refresh();
+
+    getchar();
+    endwin();
+}
+
 
 
 int main(int argc, char const *argv[])
@@ -37,6 +54,7 @@ int main(int argc, char const *argv[])
     qsort(str, strlen(argv[1]), sizeof(*argv[1]), compare);
 
     string_to_file(str, file);
+    print_sorted_string(str);
     fclose(file);
     free(str);
     return 0;

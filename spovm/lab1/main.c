@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ncurses.h>
 #include <sys/wait.h>
 
@@ -20,6 +21,7 @@ void check_status(int status)
 void create_child_process(char *string)
 {
     execl(PATH_TO_CHILD, PATH_TO_CHILD, string, NULL);
+    exit(1);  // exec only if some error will ocured
 }
 
 int wait_child_process(int pid)
@@ -44,17 +46,25 @@ int main(int argc, char const *argv[])
 {
     printf(" *** PID: %d\n", getpid());
     char buffer[MAX_STRING_SIZE];
-    pid_t pid = 0;
 
     puts("Enter string");
     fgets(buffer, MAX_STRING_SIZE, stdin);
     cut_empty_line(buffer);
 
+#ifdef __linux__
+
+    pid_t pid = 0;
     pid = fork();
     if (!pid) {
         create_child_process(buffer);
     }
     wait_child_process(pid);
+
+#elif _WIN32
+
+    puts("PROVAL");
+
+#endif
 
     return 0;
 }

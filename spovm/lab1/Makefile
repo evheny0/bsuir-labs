@@ -5,10 +5,10 @@ CFLAGS = -Wall
 all: bin child
 
 bin: $(OBJ_PARENT)
-	gcc $(CFLAGS) $(OBJ_PARENT) -o bin
+	gcc $(CFLAGS) $(OBJ_PARENT) -o bin -lncurses
 
 child: $(OBJ_CHILD)
-	gcc $(CFLAGS) $(OBJ_CHILD) -o child
+	gcc $(CFLAGS) $(OBJ_CHILD) -o child -lncurses
 
 %.o : %.c
 	gcc $(CFLAGS) -c $<
