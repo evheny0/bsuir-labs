@@ -52,11 +52,12 @@ int wait_child_process(int pid)
 void create_child_process(PROCESS_INFORMATION *pi, char *string)
 {
     STARTUPINFO si;
-    char path_to_child[MAX_STRING_SIZE];
-    sprintf(path_to_child, "C:\\Users\\homepc\\Desktop\\child.exe %s", string);
+
+    char path[100];
+    sprintf(path, "C:\\Users\\homepc\\Desktop\\child.exe %s", string);
 
     if(!CreateProcess(NULL,   // No module name (use command line)
-        path_to_child,        // Command line
+        "C:\\Users\\homepc\\Desktop\\child.exe 123123123",        // Command line
         NULL,           // Process handle not inheritable
         NULL,           // Thread handle not inheritable
         FALSE,          // Set handle inheritance to FALSE
@@ -68,13 +69,13 @@ void create_child_process(PROCESS_INFORMATION *pi, char *string)
 
         printf("CreateProcess failed (%d).\n", GetLastError());
         getchar();
-        return 0;
+        exit(1);
     }
 }
 
 int wait_child_process(PROCESS_INFORMATION *pi)
 {
-    WaitForSingleObject(pi.hProcess, NULL);
+    WaitForSingleObject(pi->hProcess, NULL);
     puts("Success!\n");
     getchar();
 }

@@ -1,6 +1,6 @@
 OBJ_PARENT = main.o
 OBJ_CHILD = child.o
-CFLAGS = -Wall
+CFLAGS = -Wall -pedantic -std=c99
 
 all: bin child
 
