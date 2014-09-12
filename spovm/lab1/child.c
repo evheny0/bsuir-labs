@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#ifdef __linux__
 #include <ncurses.h>
+#endif
 
 
 int compare(const void *a, const void *b)
@@ -23,6 +26,7 @@ void string_to_file(char *str, FILE *file)
     fprintf(file, "%s", str);
 }
 
+#ifdef __linux__
 void print_sorted_string(char *str)
 {
     initscr();
@@ -40,11 +44,27 @@ void print_sorted_string(char *str)
     endwin();
 }
 
+void print_pid()
+{
+    printf(" *** PID: %d\n", getpid());
+}
+#elif _WIN32
+void print_pid()
+{
+
+}
+
+void print_sorted_string(char *str)
+{
+    printf("Sorted string: %s\n", str);
+}
+
+#endif
 
 
 int main(int argc, char const *argv[])
 {
-    printf(" *** PID: %d\n", getpid());
+    print_pid();
     check_params(argv);
 
     char *str = calloc(strlen(argv[1]), sizeof(argv[1][0]));
