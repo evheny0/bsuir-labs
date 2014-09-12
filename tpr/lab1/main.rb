@@ -3,96 +3,150 @@ require "matrix"
 TRAINING_SET_START = 0
 TRAINING_SET_END = 10
 VALUES_COUNT = 50
+DATA_FILE_NAME = "sample.iris.data"
+
+
+
+class DataSet
+  attr_reader :values
+
+  def initialize filename
+    @values = Hash.new { |hash, key| hash[key] = [] }
+    read_from_file filename
+  end
+
+  def read_from_file filename
+    File.foreach(filename) do |line|
+      next if line == "\n"
+      value = line.split(',')
+      @values[value[4].chomp] = @values[value[4].chomp] << value[0..3].collect { |i| i.to_f }
+    end
+  end
+
+  def all_values
+    @values.values.inject { |result, values| result += values }
+  end
+
+  def values_from_to(start_value, end_value)
+    @values.map do |key, values|
+
+    end
+  end
+end
+
+class LearningSet
+  def initialize data_set
+    init_training_sets data_set
+  end
+
+  def set_average_training_set(values, type)
+    @training_set_average[type] = values.inject(Vector[0, 0, 0, 0]) { |sum, value| sum + Vector.elements(value) }
+    @training_set_average[type] = [@training_set_average[type].map { |elem| elem / values.count }]
+  end
+
+  def set_siblings_training_set(values, type)
+    @training_set_siblings[type] = values.map { |value| Vector.elements(value) }
+  end
+
+  def get_type(value, options = {})
+    training_set = (options[:method] == :average) ? @training_set_average : @training_set_siblings
+    self.send(options[:metric], training_set, Vector.elements(value))
+  end
+
+  private
+
+  def init_training_sets data_set
+    @training_set_average = {}
+    @training_set_siblings = {}
+    data_set.values.each do |type, data|
+      set_siblings_training_set(data[TRAINING_SET_START..TRAINING_SET_END], type)
+      set_average_training_set(data[TRAINING_SET_START..TRAINING_SET_END], type)
+    end
+  end
+
+  # (a*b) / (||a|| * ||b||)
+  def direction_cosines(training_set, value)
+    max_index = probable_type = nil
+    training_set.each do |key, values|
+      values.each do |elem|
+        index = value.inner_product(elem) / (value.magnitude * elem.magnitude)
+        if max_index.nil? or index > max_index
+          max_index = index
+          probable_type = key
+        end
+      end
+    end
+    probable_type
+  end
+
+  # sqrt(sum((a[i] - b[i])^2))
+  def euclidean(training_set, value)
+    min_index = probable_type = nil
+    training_set.each do |key, values|
+      values.each do |elem|
+        index = Math.sqrt((elem.zip(value).map { |row| (row[0] - row[1])**2 }).reduce(:+))
+        if min_index.nil? or index < min_index
+          min_index = index
+          probable_type = key
+        end
+      end
+    end
+    probable_type
+  end
+
+  # (a*b) / (||a||^2+||b||^2-(a*b))
+  def tanimoto(training_set, value)
+    max_index = probable_type = nil
+    training_set.each do |key, values|
+      values.each do |elem|
+        index = value.inner_product(elem) / ((value.magnitude ** 2) + (elem.magnitude ** 2) - value.inner_product(elem))
+        if max_index.nil? or index > max_index
+          max_index = index
+          probable_type = key
+        end
+      end
+    end
+    probable_type
+  end
+end
 
 class Learning
   attr_reader :average
 
   def initialize
-    @average = {}
+    @data_set = DataSet.new DATA_FILE_NAME
+    @learning_set = LearningSet.new @data_set
   end
 
-  def set_training_set(values, type)
-    @average[type] = values.inject(Vector[0, 0, 0]) { |sum, value| sum + Vector.elements(value) }
-    @average[type] = @average[type].map { |elem| elem / values.count }
-  end
+  def check_recognition_ability(start_value, end_value, method)
+    cosines_count = euclidean_count = tanimoto_count = i = 0
 
-  def check_by_direction_cosines(value, type)
-    max_index = probable_type = nil
-    @average.each do |key, elem|
-      # (a*b) / (||a|| * ||b||)
-      index = value.inner_product(elem) / (value.magnitude * elem.magnitude)
-      if max_index.nil? or index > max_index
-        max_index = index
-        probable_type = key
+    @data_set.values.each do |type, values|
+      values[start_value..end_value].each do |elem|
+        cosines_count += 1   if (@learning_set.get_type(Vector.elements(elem), method: method, metric: :direction_cosines) == type)
+        euclidean_count += 1 if (@learning_set.get_type(Vector.elements(elem), method: method, metric: :euclidean) == type)
+        tanimoto_count += 1  if (@learning_set.get_type(Vector.elements(elem), method: method, metric: :tanimoto) == type)
+        i += 1
       end
     end
-    probable_type == type ? true : false
-  end
 
-  def check_by_euclidean_metric(value, type)
-    min_index = probable_type = nil
-    @average.each do |key, elem|
-      # sqrt(sum((a[i] - b[i])^2))
-      index = Math.sqrt((elem.zip(value).map { |row| (row[0] - row[1])**2 }).reduce(:+))
-      if min_index.nil? or index < min_index
-        min_index = index
-        probable_type = key
-      end
-    end
-    probable_type == type ? true : false
+    puts "Direction cosines classifier ability is: #{(100.0 * cosines_count / i).round(2)}%"
+    puts "Euclidean metric classifier ability is: #{(100.0 * euclidean_count / i).round(2)}%"
+    puts "Tanimoto classifier ability is: #{(100.0 * tanimoto_count / i).round(2)}%"
   end
-
-  def check_by_tanimoto(value, type)
-    max_index = probable_type = nil
-    @average.each do |key, elem|
-      # (a*b) / (||a||+||b||-(a*b))
-      index = value.inner_product(elem) / ((value.magnitude ** 2) + (elem.magnitude ** 2) - value.inner_product(elem))
-      if max_index.nil? or index > max_index
-        max_index = index
-        probable_type = key
-      end
-    end
-    probable_type == type ? true : false
-  end
-
-  def check_raspozn_ability(values_to_check, type)
-    direction_cosines_count = euclidean_metric_count = tanimoto_count = 0
-    values_to_check.each do |elem|
-      direction_cosines_count += 1 if check_by_direction_cosines(Vector.elements(elem), type)
-      euclidean_metric_count += 1 if check_by_euclidean_metric(Vector.elements(elem), type)
-      tanimoto_count += 1 if check_by_tanimoto(Vector.elements(elem), type)
-    end
-    puts "Direction cosines classifier ability is: #{100.0 * direction_cosines_count / VALUES_COUNT}%"
-    puts "Euclidean metric classifier ability is: #{100.0 * euclidean_metric_count / VALUES_COUNT}%"
-    puts "Tanimoto classifier ability is: #{100.0 * tanimoto_count / VALUES_COUNT}%"
-  end
-end
-
-def read_file
-  File.foreach("sample.iris.data") do |line|
-    next if line == "\n"
-    value = line.split(',')
-    @data[value[4].chomp] = @data[value[4].chomp] << value[0..2].collect { |i| i.to_f }
-  end
-end
-
-def init_training_sets
-  iris = Learning.new
-  iris.set_training_set(@data['Iris-setosa'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-setosa')
-  iris.set_training_set(@data['Iris-versicolor'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-versicolor')
-  iris.set_training_set(@data['Iris-virginica'][TRAINING_SET_START..TRAINING_SET_END], 'Iris-virginica')
-  iris.check_raspozn_ability(@data['Iris-virginica'], 'Iris-virginica')
 end
 
 
 
-@data = Hash.new { |hash, key| hash[key] = [] }
-read_file
-init_training_sets
+l = Learning.new
 
-
-# i = 0
-# Vector.elements(@data['Iris-virginica']).each do |elem|
-#   i += 1 if iris.check_by_tanimoto(Vector.elements(elem), 'Iris-virginica')
-# end
-# puts "Classifier ability is: #{100.0 * i / VALUES_COUNT}%"
+puts("\n\nAverage method")
+puts(" - Learning set")
+l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :average)
+puts(" - Control set")
+l.check_recognition_ability(TRAINING_SET_END, VALUES_COUNT, :average)
+puts("\n\nSiblings method")
+puts(" - Learning set")
+l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :siblings)
+puts(" - Control set")
+l.check_recognition_ability(TRAINING_SET_END, VALUES_COUNT, :siblings)
