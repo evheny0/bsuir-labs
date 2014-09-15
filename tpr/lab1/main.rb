@@ -2,6 +2,8 @@ require "matrix"
 
 TRAINING_SET_START = 0
 TRAINING_SET_END = 10
+CONTROL_SET_START = TRAINING_SET_END
+CONTROL_SET_END = 15
 VALUES_COUNT = 50
 DATA_FILE_NAME = "sample.iris.data"
 
@@ -20,16 +22,6 @@ class DataSet
       next if line == "\n"
       value = line.split(',')
       @values[value[4].chomp] = @values[value[4].chomp] << value[0..3].collect { |i| i.to_f }
-    end
-  end
-
-  def all_values
-    @values.values.inject { |result, values| result += values }
-  end
-
-  def values_from_to(start_value, end_value)
-    @values.map do |key, values|
-
     end
   end
 end
@@ -119,21 +111,27 @@ class Learning
   end
 
   def check_recognition_ability(start_value, end_value, method)
-    cosines_count = euclidean_count = tanimoto_count = i = 0
+    i = 0
+    count = Hash.new(0)
 
     @data_set.values.each do |type, values|
       values[start_value..end_value].each do |elem|
-        cosines_count += 1   if (@learning_set.get_type(Vector.elements(elem), method: method, metric: :direction_cosines) == type)
-        euclidean_count += 1 if (@learning_set.get_type(Vector.elements(elem), method: method, metric: :euclidean) == type)
-        tanimoto_count += 1  if (@learning_set.get_type(Vector.elements(elem), method: method, metric: :tanimoto) == type)
+        [:direction_cosines, :euclidean, :tanimoto].each do |metric|
+          count[metric] += 1 if @learning_set.get_type(Vector.elements(elem), method: method, metric: metric) == type
+        end
         i += 1
       end
     end
 
-    puts "Direction cosines classifier ability is: #{(100.0 * cosines_count / i).round(2)}%"
-    puts "Euclidean metric classifier ability is: #{(100.0 * euclidean_count / i).round(2)}%"
-    puts "Tanimoto classifier ability is: #{(100.0 * tanimoto_count / i).round(2)}%"
+    puts "Direction cosines classifier ability is: #{(100.0 * count[:direction_cosines] / i).round(2)}%"
+    puts "Euclidean metric classifier ability is: #{(100.0 * count[:euclidean] / i).round(2)}%"
+    puts "Tanimoto classifier ability is: #{(100.0 * count[:tanimoto] / i).round(2)}%"
   end
+
+  def print_line(i, elem, type, cosines, euclidean, tanimoto)
+    printf("%3d, %15s, %d, %d, %d\n", i, type, cosines ? 1 : 0, euclidean ? 1 : 0, tanimoto ? 1 : 0)
+  end
+
 end
 
 
@@ -144,9 +142,9 @@ puts("\n\nAverage method")
 puts(" - Learning set")
 l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :average)
 puts(" - Control set")
-l.check_recognition_ability(TRAINING_SET_END, VALUES_COUNT, :average)
+l.check_recognition_ability(TRAINING_SET_END, CONTROL_SET_END, :average)
 puts("\n\nSiblings method")
 puts(" - Learning set")
 l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :siblings)
 puts(" - Control set")
-l.check_recognition_ability(TRAINING_SET_END, VALUES_COUNT, :siblings)
+l.check_recognition_ability(TRAINING_SET_END, CONTROL_SET_END, :siblings)
