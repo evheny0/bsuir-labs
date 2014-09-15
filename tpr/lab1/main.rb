@@ -1,9 +1,9 @@
 require "matrix"
 
-TRAINING_SET_START = 0
-TRAINING_SET_END = 10
+TRAINING_SET_START = 15
+TRAINING_SET_END = 22
 CONTROL_SET_START = TRAINING_SET_END
-CONTROL_SET_END = 15
+CONTROL_SET_END = 30
 VALUES_COUNT = 50
 DATA_FILE_NAME = "sample.iris.data"
 
@@ -26,7 +26,7 @@ class DataSet
   end
 end
 
-class LearningSet
+class Classifier
   def initialize data_set
     init_training_sets data_set
   end
@@ -68,7 +68,7 @@ class LearningSet
         end
       end
     end
-    probable_type
+    [probable_type, max_index]
   end
 
   # sqrt(sum((a[i] - b[i])^2))
@@ -83,7 +83,7 @@ class LearningSet
         end
       end
     end
-    probable_type
+    [probable_type, min_index]
   end
 
   # (a*b) / (||a||^2+||b||^2-(a*b))
@@ -98,7 +98,7 @@ class LearningSet
         end
       end
     end
-    probable_type
+    [probable_type, max_index]
   end
 end
 
@@ -107,7 +107,7 @@ class Learning
 
   def initialize
     @data_set = DataSet.new DATA_FILE_NAME
-    @learning_set = LearningSet.new @data_set
+    @learning_set = Classifier.new @data_set
   end
 
   def check_recognition_ability(start_value, end_value, method)
@@ -117,7 +117,7 @@ class Learning
     @data_set.values.each do |type, values|
       values[start_value..end_value].each do |elem|
         [:direction_cosines, :euclidean, :tanimoto].each do |metric|
-          count[metric] += 1 if @learning_set.get_type(Vector.elements(elem), method: method, metric: metric) == type
+          count[metric] += 1 if @learning_set.get_type(Vector.elements(elem), method: method, metric: metric)[0] == type
         end
         i += 1
       end
@@ -128,8 +128,22 @@ class Learning
     puts "Tanimoto classifier ability is: #{(100.0 * count[:tanimoto] / i).round(2)}%"
   end
 
-  def print_line(i, elem, type, cosines, euclidean, tanimoto)
-    printf("%3d, %15s, %d, %d, %d\n", i, type, cosines ? 1 : 0, euclidean ? 1 : 0, tanimoto ? 1 : 0)
+  def print_table(start_value, end_value)
+    puts "##############################################################################################################################################################"
+    puts " #         Value        #      Class      #   Agv. Cosines   #   Sibl. Cosines  #  Avg. Euclidean  #  Sibl. Euclidean #   Avg. Tanimoto  #   Sibl. Tanimoto # "
+    puts "##############################################################################################################################################################"
+    @data_set.values.each do |type, values|
+      values[start_value..end_value].each do |elem|
+        printf(" # %s # %15s # ", elem.to_s, type)
+        [:direction_cosines, :euclidean, :tanimoto].each do |metric|
+          result = @learning_set.get_type(Vector.elements(elem), method: :average, metric: metric)
+          printf("   %.5f : %s   # ", result[1], (result[0] == type) ? "1" : "\033[1;31m0\033[0m")
+          result = @learning_set.get_type(Vector.elements(elem), method: :siblings, metric: metric)
+          printf("   %.5f : %s   # ", result[1], (result[0] == type) ? "1" : "\033[1;31m0\033[0m")
+        end
+        puts
+      end
+    end
   end
 
 end
@@ -148,3 +162,5 @@ puts(" - Learning set")
 l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :siblings)
 puts(" - Control set")
 l.check_recognition_ability(TRAINING_SET_END, CONTROL_SET_END, :siblings)
+
+l.print_table(TRAINING_SET_START, CONTROL_SET_END)
