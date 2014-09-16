@@ -1,10 +1,9 @@
 require "matrix"
 
 TRAINING_SET_START = 15
-TRAINING_SET_END = 22
-CONTROL_SET_START = TRAINING_SET_END
-CONTROL_SET_END = 30
-VALUES_COUNT = 50
+TRAINING_SET_END = 19
+CONTROL_SET_START = TRAINING_SET_END + 1
+CONTROL_SET_END = 29
 DATA_FILE_NAME = "sample.iris.data"
 
 
@@ -123,14 +122,14 @@ class Learning
       end
     end
 
-    puts "Direction cosines classifier ability is: #{(100.0 * count[:direction_cosines] / i).round(2)}%"
-    puts "Euclidean metric classifier ability is: #{(100.0 * count[:euclidean] / i).round(2)}%"
-    puts "Tanimoto classifier ability is: #{(100.0 * count[:tanimoto] / i).round(2)}%"
+    puts "Direction cosines: #{(100.0 * count[:direction_cosines] / i).round(2)}%"
+    puts " Euclidean metric: #{(100.0 * count[:euclidean] / i).round(2)}%"
+    puts "  Tanimoto metric: #{(100.0 * count[:tanimoto] / i).round(2)}%"
   end
 
   def print_table(start_value, end_value)
     puts "##############################################################################################################################################################"
-    puts " #         Value        #      Class      #   Agv. Cosines   #   Sibl. Cosines  #  Avg. Euclidean  #  Sibl. Euclidean #   Avg. Tanimoto  #   Sibl. Tanimoto # "
+    puts " #         Value        #      Class      #   Agv. Cosines   #   Neib. Cosines  #  Avg. Euclidean  #  Neib. Euclidean #   Avg. Tanimoto  #   Neib. Tanimoto # "
     puts "##############################################################################################################################################################"
     @data_set.values.each do |type, values|
       values[start_value..end_value].each do |elem|
@@ -152,15 +151,18 @@ end
 
 l = Learning.new
 
+puts("Size of learning set: #{(TRAINING_SET_END - TRAINING_SET_START + 1) * 3}")
+puts("Size of control set: #{(CONTROL_SET_END - CONTROL_SET_START + 1) * 3}")
+
 puts("\n\nAverage method")
-puts(" - Learning set")
+puts(" - Recognotion ability:")
 l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :average)
-puts(" - Control set")
-l.check_recognition_ability(TRAINING_SET_END, CONTROL_SET_END, :average)
+puts(" - Generalization ability:")
+l.check_recognition_ability(CONTROL_SET_START, CONTROL_SET_END, :average)
 puts("\n\nSiblings method")
-puts(" - Learning set")
+puts(" - Recognotion ability:")
 l.check_recognition_ability(TRAINING_SET_START, TRAINING_SET_END, :siblings)
-puts(" - Control set")
-l.check_recognition_ability(TRAINING_SET_END, CONTROL_SET_END, :siblings)
+puts(" - Generalization ability:")
+l.check_recognition_ability(CONTROL_SET_START, CONTROL_SET_END, :siblings)
 
 l.print_table(TRAINING_SET_START, CONTROL_SET_END)
