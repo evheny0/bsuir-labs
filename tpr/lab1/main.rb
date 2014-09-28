@@ -1,29 +1,12 @@
 require "matrix"
+require "../lib/iris_reader.rb"
 
 TRAINING_SET_START = 15
 TRAINING_SET_END = 19
 CONTROL_SET_START = TRAINING_SET_END + 1
 CONTROL_SET_END = 29
-DATA_FILE_NAME = "sample.iris.data"
 
 
-
-class DataSet
-  attr_reader :values
-
-  def initialize filename
-    @values = Hash.new { |hash, key| hash[key] = [] }
-    read_from_file filename
-  end
-
-  def read_from_file filename
-    File.foreach(filename) do |line|
-      next if line == "\n"
-      value = line.split(',')
-      @values[value[4].chomp] = @values[value[4].chomp] << value[0..3].collect { |i| i.to_f }
-    end
-  end
-end
 
 class Classifier
   def initialize data_set
@@ -105,7 +88,7 @@ class Learning
   attr_reader :average
 
   def initialize
-    @data_set = DataSet.new DATA_FILE_NAME
+    @data_set = DataSet.new
     @learning_set = Classifier.new @data_set
   end
 
