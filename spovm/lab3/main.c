@@ -33,9 +33,7 @@ void child_program(sem_t semaphore_id)
 
     while (recieved_string[0] != 'q') {
         semop(semaphore_id, &sembufs[INC], 1);
-        sleep(1);
         semop(semaphore_id, &sembufs[WAIT], 1);
-        semop(semaphore_id, &sembufs[INC], 1);
         printf("Received!\n");
         read(file_descriptors[0], recieved_string, sizeof(recieved_string));
         printf("Received string is: %s", recieved_string);
@@ -72,15 +70,15 @@ void main_loop(sem_t semaphore_id)
         fgets(string, STRING_SIZE, stdin);
         write(file_descriptors[1], string, (strlen(string)+1));
         semop(semaphore_id, &sembufs[DEC], 1);
-        semop(semaphore_id, &sembufs[WAIT], 1);
         semop(semaphore_id, &sembufs[INC], 1);
+        semop(semaphore_id, &sembufs[WAIT], 1);
     }
     free(sembufs);
 }
 
 int create_semaphore(const char* path)
 {
-    int id = semget(ftok(path, 'i'), 1, IPC_CREAT);
+    int id = semget(123123, 1, IPC_CREAT | 0600);
     semctl(id, 0, SETVAL, 0);
     return id;
 }
