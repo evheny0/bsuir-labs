@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
-require "matrix"
-require "../lib/iris_reader.rb"
+require 'matrix'
 require 'pry'
+require "../lib/iris_reader.rb"
 
 
 T = 0.5  # threshold
@@ -10,7 +10,9 @@ TRUE_OUTPUT = { "Iris-setosa" => [1, 0, 0], "Iris-versicolor" => [0, 1, 0], "Iri
 
 
 LEARNING_SET_START = 0
-LEARNING_SET_END = 50
+LEARNING_SET_END = 9
+CONTROL_SET_START = 10
+CONTROL_SET_END = 19
 LEARNING_TRESHOLD = 0.95
 ETA = 0.5 # learning coefficient
 # learning treshold is 91%:
@@ -21,6 +23,12 @@ ETA = 0.5 # learning coefficient
 # 0.05 => 2..99
 # 0.005 => 37..5720
 # 0.0005 => 126119
+
+# learning treshold is 95%:
+# 1 => 63..4120
+# 0.5 => 76..471
+# 0.05 => 177..2858
+# 0.005 => 11222
 
 def rand_weight
   [rand, rand, rand, rand]
@@ -48,8 +56,6 @@ class Neuron
   def recalculate_weight input, delta, output
     @weight.map!.with_index do |w, i|
       w += ETA * delta * output * (1 - output) * input[i] # delta_w_i = eta * delta * df(e)/de * x_i
-      # p ETA * delta * output * (1 - output) * input[i]
-
     end
   end
 
@@ -128,26 +134,22 @@ class Perceptron
   end
 
   def learn_by_set set
-    correct_otput_count = 0
     set.each do |type, values|
       values[LEARNING_SET_START..LEARNING_SET_END].each do |value|
-        calculate_output(type, value)
+        calculate_output(value)
         calculate_deltas(type)
 
         # print_net value, type
 
         recalculate_weight
-        correct_otput_count += check_is_output_correct type
       end
     end
-    print_net nil, nil
-    correct_otput_count
+    # print_net nil, nil
   end
 
-  def calculate_output type, value
+  def calculate_output value
     hidden_y = @hidden_layer.calculate_output value
-    output_y = @output_layer.calculate_output hidden_y
-    @output_y = round_values output_y
+    @output_y = round_values(@output_layer.calculate_output(hidden_y))
   end
 
   def calculate_deltas type
@@ -176,6 +178,21 @@ class Perceptron
     sleep 0.1
   end
 
+  def percent_of_classified set, set_start, set_end
+    correct_otput_count = 0
+    set.each do |type, values|
+      values[set_start..set_end].each do |value|
+        correct_otput_count += 1 if (classify(value) == type)
+        # print_net value, type
+      end
+    end
+    correct_otput_count / ((set_end - set_start + 1) * 3.0)
+  end
+
+  def classify value
+    get_type_by_result(calculate_output(value))
+  end
+
   private
 
   def calculate_output_delta output, type
@@ -186,30 +203,23 @@ class Perceptron
     values.map { |value| value.round }
   end
 
-  def check_is_output_correct type
-    calculate_output_delta(@output_y, type).each { |i| return 0 if i != 0 }
-    1
+  def get_type_by_result result
+    TRUE_OUTPUT.invert[result]
   end
 end
 
 data = DataSet.new
-
-
-# n = Neuron.new
-# n.learn_by data.values
-# n.learn_by data.values
-# n.learn_by data.values
-# n.learn_by data.values
-# n.print_results data.values
 p = Perceptron.new 4, 3
 i = 0
 loop do
   i += 1
-  num_of_correct_results = p.learn_by_set(data.values)
-  persent = num_of_correct_results / ((LEARNING_SET_END - LEARNING_SET_START) * 3.0)
-  puts "Persent of correct outputs is: #{(persent * 100).round}%"
-  break if persent >= LEARNING_TRESHOLD
+  p.learn_by_set(data.values)
+  break if p.percent_of_classified(data.values, LEARNING_SET_START, LEARNING_SET_END) >= LEARNING_TRESHOLD
 end
+
+
+printf(" - Recognotion ability: %d%\n", p.percent_of_classified(data.values, LEARNING_SET_START, LEARNING_SET_END) * 100)
+printf(" - Generalization ability: %d%\n", p.percent_of_classified(data.values, CONTROL_SET_START, CONTROL_SET_END) * 100)
 
 puts "\nIterations count is: #{i}"
 
