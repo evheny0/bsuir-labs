@@ -4,7 +4,7 @@ require 'pry'
 require "../lib/iris_reader.rb"
 
 
-T = 0.5  # threshold
+T = 0.5  # treshold
 START_WEIGHT = [0.3, 0.3, 0.3, 0.3]  # W0, not used
 TRUE_OUTPUT = { "Iris-setosa" => [1, 0, 0], "Iris-versicolor" => [0, 1, 0], "Iris-virginica" => [0, 0, 1] }  # D
 
@@ -13,7 +13,7 @@ LEARNING_SET_END = 9
 CONTROL_SET_START = 10
 CONTROL_SET_END = 19
 LEARNING_TRESHOLD = 0.90
-ETA = 0.5 # learning coefficient
+ETA = 0.05 # learning coefficient
 # learning treshold is 95%:
 # 1 => 63..4120
 # 0.5 => 76..471
@@ -222,8 +222,9 @@ loop do
   break if percent_of_classified >= LEARNING_TRESHOLD
 end
 
-
-printf "\n"
+puts("Size of learning set: #{(LEARNING_SET_END - LEARNING_SET_START + 1) * 3}")
+puts("Size of control set: #{(CONTROL_SET_END - CONTROL_SET_START + 1) * 3}")
+printf "\n\n"
 puts "Iterations count is: #{i}\n"
 printf(" - Recognotion ability: %d%\n", p.percent_of_classified(data.values, LEARNING_SET_START, LEARNING_SET_END) * 100)
 printf(" - Generalization ability: %d%\n", p.percent_of_classified(data.values, CONTROL_SET_START, CONTROL_SET_END) * 100)
