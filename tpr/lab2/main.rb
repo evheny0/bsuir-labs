@@ -8,22 +8,12 @@ T = 0.5  # threshold
 START_WEIGHT = [0.3, 0.3, 0.3, 0.3]  # W0, not used
 TRUE_OUTPUT = { "Iris-setosa" => [1, 0, 0], "Iris-versicolor" => [0, 1, 0], "Iris-virginica" => [0, 0, 1] }  # D
 
-
 LEARNING_SET_START = 0
 LEARNING_SET_END = 9
 CONTROL_SET_START = 10
 CONTROL_SET_END = 19
-LEARNING_TRESHOLD = 0.95
+LEARNING_TRESHOLD = 0.90
 ETA = 0.5 # learning coefficient
-# learning treshold is 91%:
-# 1 => 1
-# 0.5 => 1..2
-# 0.1 => 2..27
-# 0.5 => 2..42
-# 0.05 => 2..99
-# 0.005 => 37..5720
-# 0.0005 => 126119
-
 # learning treshold is 95%:
 # 1 => 63..4120
 # 0.5 => 76..471
@@ -178,6 +168,17 @@ class Perceptron
     sleep 0.1
   end
 
+  def print_all_outputs set, set_start, set_end
+    printf "####################################################\n"
+    set.each do |type, values|
+      values[set_start..set_end].each do |value|
+        evaluated_type = classify(value)
+        printf(" # %s # %15s # %5s # \n", value.to_s, type, (evaluated_type == type) ? 'true' : "\033[1;31mfalse\033[0m")
+      end
+    end
+    printf "####################################################\n"
+  end
+
   def percent_of_classified set, set_start, set_end
     correct_otput_count = 0
     set.each do |type, values|
@@ -204,9 +205,12 @@ class Perceptron
   end
 
   def get_type_by_result result
-    TRUE_OUTPUT.invert[result]
+    result = TRUE_OUTPUT.invert[result]
+    result ? result : "Indefinite"
   end
 end
+
+
 
 data = DataSet.new
 p = Perceptron.new 4, 3
@@ -214,23 +218,14 @@ i = 0
 loop do
   i += 1
   p.learn_by_set(data.values)
-  break if p.percent_of_classified(data.values, LEARNING_SET_START, LEARNING_SET_END) >= LEARNING_TRESHOLD
+  percent_of_classified = p.percent_of_classified(data.values, LEARNING_SET_START, LEARNING_SET_END)
+  break if percent_of_classified >= LEARNING_TRESHOLD
 end
 
 
+printf "\n"
+puts "Iterations count is: #{i}\n"
 printf(" - Recognotion ability: %d%\n", p.percent_of_classified(data.values, LEARNING_SET_START, LEARNING_SET_END) * 100)
 printf(" - Generalization ability: %d%\n", p.percent_of_classified(data.values, CONTROL_SET_START, CONTROL_SET_END) * 100)
-
-puts "\nIterations count is: #{i}"
-
-
-
-
-
-
-def count
-  s = Vector[5.4, 3.8800000000000003, 1.48, 0.34]
-  v = Vector[5.9799999999999995, 2.7, 4.279999999999999, 1.3]
-  sum = ((s.magnitude)**2 - (v.magnitude)**2) / 2
-  printf("%f*x1 + %f*x2 + %f*x3 + %f*x4 + %f", s[0] - v[0], s[1] - v[1], s[2] - v[2], s[3] - v[3], sum)
-end
+printf "\n"
+p.print_all_outputs(data.values, LEARNING_SET_START, CONTROL_SET_END)
