@@ -9,12 +9,12 @@
 #endif
 
 const int STRING_SIZE = 20;
-const thread_t MAX_THREADS_COUNT = 100;
+const int MAX_THREADS_COUNT = 100;
 const char *OUTPUT_STRING = "Thread id is: ";
 mutex_t mutex;
 
 void main_loop();
-void *output_thread(void *input_args);
+return_value_t output_thread(void *input_args);
 void add_thread(thread_t *threads, struct thread_args_t *all_args, int last);
 void delete_thread(thread_t *threads, struct thread_args_t *all_args, int *last);
 void kill_all_threads(thread_t *threads, struct thread_args_t *all_args, int last);
@@ -50,14 +50,14 @@ void main_loop()
     }
 }
 
-void *output_thread(void *input_args)
+return_value_t output_thread(input_args_type_t input_args)
 {
     struct thread_args_t *args = (struct thread_args_t *) input_args;
-    int is_exit = 0;
+    int i, is_exit = 0;
 
     while (!is_exit) {
         mutex_lock(&mutex);
-        for (int i = 0; i < strlen(OUTPUT_STRING); ++i) {
+        for (i = 0; i < strlen(OUTPUT_STRING); ++i) {
             printf("%c", OUTPUT_STRING[i]);
         }
         printf("%d\n", args->id);
@@ -65,8 +65,12 @@ void *output_thread(void *input_args)
             is_exit = 1;
         }
         mutex_unlock(&mutex);
+
+        #ifdef _WIN32
+        Sleep(10);
+        #endif
     }
-    pthread_exit(NULL);
+    thread_exit();
     return 0;
 }
 
@@ -89,7 +93,8 @@ void delete_thread(thread_t *threads, struct thread_args_t *all_args, int *last)
 
 void kill_all_threads(thread_t *threads, struct thread_args_t *all_args, int last)
 {
-    for (int i = 0; i <= last; ++i) {
+    int i;
+    for (i = 0; i <= last; ++i) {
         mutex_lock(&mutex);
         *(all_args[i].is_exit) = 1;
         mutex_unlock(&mutex);

@@ -29,3 +29,7 @@ void mutex_unlock(mutex_t *mutex)
     pthread_mutex_unlock(mutex);
 }
 
+void thread_exit()
+{
+    pthread_exit(NULL);
+}
