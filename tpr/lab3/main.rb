@@ -3,8 +3,15 @@ require 'matrix'
 require 'pry'
 require "../lib/iris_reader.rb"
 
+LEARNING_SET_START = 0
+LEARNING_SET_END = 79
+CONTROL_SET_START = 80
+CONTROL_SET_END = 139
+
 
 class TreeNode
+  attr_accessor :next_true, :next_false, :return_type, :treshold, :attr_name
+
   def initialize attr_name, treshold, params = {}
     @attr_name = attr_name
     @treshold = treshold
@@ -14,7 +21,7 @@ class TreeNode
   end
 
   def predict element
-    if @return_type
+    if is_leaf?
       @return_type
     else
       if element[@attr_name] <= @treshold
@@ -23,6 +30,10 @@ class TreeNode
         @next_false.predict element
       end
     end
+  end
+
+  def is_leaf?
+    !@return_type.nil?
   end
 end
 
@@ -36,18 +47,40 @@ class DesicionTree
     @root.predict value
   end
 
+  def print_tree_to_html
+    "<div class=\"tree\"> #{tree_to_html} </div>"
+  end
+
+  def percent_of_classified dataset
+    i = 0.0
+    dataset.each do |value|
+      i += 1 if classify(value) == value[:type]
+    end
+    i / dataset.size
+  end
+
+  def print_all_values dataset
+    printf "####################################################\n"
+    dataset.each do |value|
+      evaluated_type = classify(value)
+      printf(" # %s # %15s # %5s # \n", value.values[0..3].to_s, value[:type], (evaluated_type == value[:type]) ? 'true' : "\033[1;31mfalse\033[0m")
+    end
+    printf "####################################################\n"
+  end
+
+
   private
 
   def build_tree dataset
-    best_split = {gain: 0}
+    best_split = { gain: 0 }
     dataset_entropy = entropy(dataset)
+
     dataset.each do |element|
       element.each do |attr_name, value|
         next if attr_name == :type
-        match_values, not_match_value = split(dataset, attr_name, value)
 
-        new_entropy = count_new_entropy(match_values, not_match_value)
-        current_gain = dataset_entropy - new_entropy
+        match_values, not_match_value = split(dataset, attr_name, value)
+        current_gain = count_new_gain(match_values, not_match_value, dataset_entropy)
 
         if current_gain >= best_split[:gain]
           best_split[:match] = match_values
@@ -70,14 +103,14 @@ class DesicionTree
     TreeNode.new(best_split[:attr_name], best_split[:value], next_true: match, next_false: not_match)
   end
 
-  def count_new_entropy match_values, not_match_values
+  def count_new_gain match_values, not_match_values, dataset_entropy
     match_entropy = entropy(match_values)
     not_match_entropy = entropy(not_match_values)
 
     new_entropy = match_entropy * match_values.size
     new_entropy += not_match_entropy * not_match_values.size
     new_entropy /= (match_values.size + not_match_values.size)
-    new_entropy
+    current_gain = dataset_entropy - new_entropy
   end
 
   def count_types dataset
@@ -108,12 +141,50 @@ class DesicionTree
     end
     return match, not_match
   end
+
+  def tree_to_html tree = @root
+    if (tree.return_type)
+      return "<ul>
+                <li>
+                  <a>
+                    <b> #{tree.return_type} </b>
+                  </a>
+                </li>
+              </ul>"
+    end
+    "<ul>
+      <li>
+        <a>
+          <b> #{tree.attr_name} <= #{tree.treshold}</b>
+        </a>
+        <ul>
+          <li>
+            <a>yes</a>
+            #{tree_to_html(tree.next_true)}
+          </li>
+          <li>
+            <a>no</a>
+            #{tree_to_html(tree.next_false)}
+          </li>
+        </ul>
+      </li>
+    </ul>"
+  end
 end
 
 
 data = DataSet.new :to_array
-d = DesicionTree.new data.values
+data.values.shuffle!
+d = DesicionTree.new data.values[LEARNING_SET_START..LEARNING_SET_END]
 
-s = data.values.sample
-p s
-p d.classify(s)
+open('index.html', 'w') do |f|
+  f.puts "<link type=\"text/css\" rel=\"stylesheet\" href=\"style.css\">"
+  f.puts d.print_tree_to_html
+end
+
+d.print_all_values(data.values[LEARNING_SET_START..CONTROL_SET_END])
+puts("Size of learning set: #{LEARNING_SET_END - LEARNING_SET_START + 1}")
+puts("Size of control set: #{CONTROL_SET_END - CONTROL_SET_START + 1}")
+printf "\n"
+printf(" - Recognotion ability: %d%\n", d.percent_of_classified(data.values[LEARNING_SET_START..LEARNING_SET_END]) * 100)
+printf(" - Generalization ability: %d%\n", d.percent_of_classified(data.values[CONTROL_SET_START..CONTROL_SET_END]) * 100)
