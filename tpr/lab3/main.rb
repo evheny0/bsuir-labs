@@ -4,13 +4,13 @@ require 'pry'
 require "../lib/iris_reader.rb"
 
 LEARNING_SET_START = 0
-LEARNING_SET_END = 79
-CONTROL_SET_START = 80
-CONTROL_SET_END = 139
-
+LEARNING_SET_END = 80
+CONTROL_SET_START = 81
+CONTROL_SET_END = 141
+LEARNING_SET_COUNT = LEARNING_SET_END - LEARNING_SET_START
 
 class TreeNode
-  attr_accessor :next_true, :next_false, :return_type, :treshold, :attr_name
+  attr_accessor :next_true, :next_false, :return_type, :treshold, :attr_name, :values_count
 
   def initialize attr_name, treshold, params = {}
     @attr_name = attr_name
@@ -18,6 +18,10 @@ class TreeNode
     @next_true = params[:next_true]
     @next_false = params[:next_false]
     @return_type = params[:type]
+    @values_count = 0.0
+    @true_values_count = 0.0
+    @false_values_count = 0.0
+    @all_values_count = 0.0
   end
 
   def predict element
@@ -32,8 +36,32 @@ class TreeNode
     end
   end
 
+  def predict_and_count element
+    if is_leaf?
+      @values_count += 1
+      @return_type
+    else
+      @all_values_count += 1
+      if element[@attr_name] <= @treshold
+        @true_values_count += 1
+        @next_true.predict_and_count element
+      else
+        @false_values_count += 1
+        @next_false.predict_and_count element
+      end
+    end  
+  end
+
   def is_leaf?
     !@return_type.nil?
+  end
+
+  def true_percent
+    (@true_values_count / @all_values_count * 100).round.to_i
+  end
+
+  def false_percent
+    (@false_values_count / @all_values_count * 100).round.to_i
   end
 end
 
@@ -41,10 +69,17 @@ end
 class DesicionTree
   def initialize dataset
     @root = build_tree dataset
+    count_leaf_power dataset
   end
 
   def classify value
     @root.predict value
+  end
+
+  def count_leaf_power dataset
+    dataset.each do |value|
+      @root.predict_and_count value
+    end
   end
 
   def print_tree_to_html
@@ -143,11 +178,11 @@ class DesicionTree
   end
 
   def tree_to_html tree = @root
-    if (tree.return_type)
+    if (tree.is_leaf?)
       return "<ul>
                 <li>
-                  <a>
-                    <b> #{tree.return_type} </b>
+                  <a class=#{tree.return_type}>
+                    <b> #{tree.return_type}  </b>
                   </a>
                 </li>
               </ul>"
@@ -159,11 +194,11 @@ class DesicionTree
         </a>
         <ul>
           <li>
-            <a>yes</a>
+            <a>yes<br>#{tree.true_percent}%</a>
             #{tree_to_html(tree.next_true)}
           </li>
           <li>
-            <a>no</a>
+            <a>no<br>#{tree.false_percent}%</a>
             #{tree_to_html(tree.next_false)}
           </li>
         </ul>
@@ -183,8 +218,8 @@ open('index.html', 'w') do |f|
 end
 
 d.print_all_values(data.values[LEARNING_SET_START..CONTROL_SET_END])
-puts("Size of learning set: #{LEARNING_SET_END - LEARNING_SET_START + 1}")
-puts("Size of control set: #{CONTROL_SET_END - CONTROL_SET_START + 1}")
+puts("Size of learning set: #{LEARNING_SET_END - LEARNING_SET_START}")
+puts("Size of control set: #{CONTROL_SET_END - CONTROL_SET_START}")
 printf "\n"
 printf(" - Recognotion ability: %d%\n", d.percent_of_classified(data.values[LEARNING_SET_START..LEARNING_SET_END]) * 100)
 printf(" - Generalization ability: %d%\n", d.percent_of_classified(data.values[CONTROL_SET_START..CONTROL_SET_END]) * 100)

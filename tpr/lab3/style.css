@@ -90,3 +90,14 @@
 .tree li a:hover+ul ul::before{
     border-color:  #94a0b4;
 }
+
+/*.Iris-versicolor {
+    background: #97BE0D;
+}
+.Iris-setosa {
+    background: #EDEBEE;
+}
+.Iris-virginica {
+    background: #88B8E6;
+}
+*/
