@@ -1,10 +1,5 @@
 require "matrix"
-require "../lib/iris_reader.rb"
-
-TRAINING_SET_START = 15
-TRAINING_SET_END = 19
-CONTROL_SET_START = TRAINING_SET_END + 1
-CONTROL_SET_END = 29
+require File.dirname(__FILE__) + "/../lib/iris_reader.rb"
 
 
 

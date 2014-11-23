@@ -2,11 +2,6 @@ require 'matrix'
 
 
 
-LEARNING_SET_START = 0
-LEARNING_SET_END = 80
-CONTROL_SET_START = 81
-CONTROL_SET_END = 141
-LEARNING_SET_COUNT = LEARNING_SET_END - LEARNING_SET_START
 
 class TreeNode
   attr_accessor :next_true, :next_false, :return_type, :treshold, :attr_name, :values_count
@@ -91,6 +86,14 @@ class DesicionTree
       i += 1 if classify(value) == value[:type]
     end
     i / dataset.size
+  end
+
+  def true_count dataset, type
+    i = 0.0
+    dataset.each do |value|
+      i += 1 if classify(value) == type && type == value[:type]
+    end
+    i
   end
 
   def print_all_values dataset

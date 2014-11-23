@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
-require File.dirname(__FILE__)  + "/perceptron.rb"
-require "../lib/iris_reader.rb"
+require File.dirname(__FILE__) + "/perceptron.rb"
+require File.dirname(__FILE__) +  "/../lib/iris_reader.rb"
 
+LEARNING_SET_START = 0
+LEARNING_SET_END = 19
+CONTROL_SET_START = 20
+CONTROL_SET_END = 39
 
 
 data = DataSet.new to_hash: true

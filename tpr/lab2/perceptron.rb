@@ -4,10 +4,6 @@ T = 0.5  # treshold
 START_WEIGHT = [0.3, 0.3, 0.3, 0.3]  # W0, not used
 TRUE_OUTPUT = { "Iris-setosa" => [1, 0, 0], "Iris-versicolor" => [0, 1, 0], "Iris-virginica" => [0, 0, 1] }  # D
 
-LEARNING_SET_START = 0
-LEARNING_SET_END = 9
-CONTROL_SET_START = 10
-CONTROL_SET_END = 19
 LEARNING_TRESHOLD = 0.90
 ETA = 0.05 # learning coefficient
 # learning treshold is 95%:

@@ -1,6 +1,12 @@
 #!/usr/bin/env ruby
-require File.dirname(__FILE__)  + "/desicion_tree.rb"
-require "../lib/iris_reader.rb"
+require File.dirname(__FILE__) + "/desicion_tree.rb"
+require File.dirname(__FILE__) +  "/../lib/iris_reader.rb"
+
+LEARNING_SET_START = 0
+LEARNING_SET_END = 80
+CONTROL_SET_START = 81
+CONTROL_SET_END = 141
+LEARNING_SET_COUNT = LEARNING_SET_END - LEARNING_SET_START
 
 
 data = DataSet.new to_array: true
