@@ -6,14 +6,14 @@ IRIS_FILE_NAME = "../sample.iris.data"
 class DataSet
   attr_reader :values
 
-  def initialize
-    @values = Hash.new { |hash, key| hash[key] = [] }
-    read_from_file IRIS_FILE_NAME
-  end
-
-  def initialize sumb
-    @values = Array.new
-    read_to_array IRIS_FILE_NAME
+  def initialize params = {}
+    if params[:to_array]
+      @values = Array.new
+      read_to_array IRIS_FILE_NAME
+    elsif params[:to_hash]
+      @values = Hash.new { |hash, key| hash[key] = [] }
+      read_from_file IRIS_FILE_NAME
+    end
   end
 
   def read_from_file filename

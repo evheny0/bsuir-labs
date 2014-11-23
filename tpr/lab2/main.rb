@@ -212,7 +212,7 @@ end
 
 
 
-data = DataSet.new
+data = DataSet.new to_hash: true
 p = Perceptron.new 4, 3
 i = 0
 loop do

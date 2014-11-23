@@ -208,7 +208,7 @@ class DesicionTree
 end
 
 
-data = DataSet.new :to_array
+data = DataSet.new to_array: true
 data.values.shuffle!
 d = DesicionTree.new data.values[LEARNING_SET_START..LEARNING_SET_END]
 

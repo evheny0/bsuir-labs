@@ -88,7 +88,7 @@ class Learning
   attr_reader :average
 
   def initialize
-    @data_set = DataSet.new
+    @data_set = DataSet.new to_hash: true
     @learning_set = Classifier.new @data_set
   end
 
