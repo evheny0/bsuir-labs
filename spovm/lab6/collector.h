@@ -3,7 +3,10 @@
 
 #include <map>
 #include <iostream>
+#include <ncurses.h>
 #include "memory_info.h"
+// #define _LOG_TO_NCURSES
+
 
 namespace GC {
 
@@ -21,6 +24,7 @@ class Memory {
     static MemoryInfo get_new(int size);
     static void add_link(int id);
     static void delete_link(int id);
+    static void log(const char *string);
 };
 
 

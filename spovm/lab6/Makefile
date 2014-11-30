@@ -1,5 +1,5 @@
 OBJ = main.o collector.o pointer.o memory_info.o
-CFLAGS = -Wall -pedantic
+CFLAGS = -Wall -pedantic -D _LOG_TO_NCURSES=1
 
 all: $(OBJ)
 	g++ $(CFLAGS) $(OBJ) -o bin -lncurses

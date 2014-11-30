@@ -11,6 +11,7 @@ template<typename T>
 class Pointer {
     int id;
     T *object;
+
   public:
     Pointer();
     Pointer(T &value);
@@ -20,6 +21,7 @@ class Pointer {
     T *operator->();
     Pointer &operator=(Pointer<T> &new_value);
     Pointer &operator=(T &value);
+
   private:
     void create_new_object();
 };
