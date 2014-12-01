@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
+#include <unistd.h>
 
 typedef pthread_t thread_t;
 typedef pthread_mutex_t mutex_t;
