@@ -17,7 +17,7 @@ typedef struct aiocb faio_t;
 
 #define FILE_SIZE 1000
 #define NUM_OF_FILES 3
-const char *OUTPUT_FILENAME = "write_file.txt";
+const char *OUTPUT_FILENAME = "files/write_file.txt";
 mutex_t mutex_one, mutex_two;
 
 faio_t (*faio_init)(int, char *, int);
@@ -31,7 +31,7 @@ void init_faio_functions();
 
 int main(int argc, char *argv[])
 {
-    char *filenames[FILE_SIZE] = {"input/read_file1.txt", "input/read_file2.txt", "input/read_file3.txt"};
+    char *filenames[FILE_SIZE] = {"files/read_file1.txt", "files/read_file2.txt", "files/read_file3.txt"};
     char files[FILE_SIZE];
     init_faio_functions();
     mutex_one = mutex_init();
