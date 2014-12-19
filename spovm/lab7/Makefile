@@ -1,4 +1,4 @@
-OBJ = main.o file.o slfs.o dir.o utils.o
+OBJ = main.o file.o slfs.o dir.o utils.o graphics.o file_manager.o
 CFLAGS = -Wall -pedantic -std=c++11
 
 all: $(OBJ)

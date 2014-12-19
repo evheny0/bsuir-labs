@@ -13,7 +13,6 @@ void Filesystem::init(std::string name)
     } else {
         ((Filesystem *)fs_manager)->init_root_dir();
     }
-    // File lala("one/two/three");
 }
 
 void Filesystem::end()
@@ -33,9 +32,6 @@ Filesystem::Filesystem(std::string name)
     fs_data = new char[TOTAL_DISK_SIZE];
     disk.read(fs_data, TOTAL_DISK_SIZE);
     init_masks();
-    // std::cout << disk.is_open();
-    // int i = 10;
-    // disk.write((char *) &i, 4);
 }
 
 Filesystem::~Filesystem()
@@ -99,19 +95,26 @@ char *Filesystem::get_file_data(int pos)
 
 Fileinfo Filesystem::get_file_info(std::string path)
 {
+    if (path == "/") {
+        Fileinfo r(root_dir.get_info_link(), root_dir.get_info_link(), "root");
+        return r;
+    }
+    Dir dir;
+    int link;
     auto dirs = parse_path(path);
     auto filename = dirs.back();
     dirs.pop_back();
-    auto dir = get_last_dir(dirs);
-    int link = dir.get_file_link(filename);
+    dir = root_dir.get_dir(dirs);
+    link = dir.get_file_link(filename);
     Fileinfo r(link, dir.get_info_link(), filename);
     return r;
 }
 
-Dir Filesystem::get_last_dir(std::vector<char *> dirs_path)
+void Filesystem::add_file_to_dir(int child, int parent, int type)
 {
-    Dir dir = root_dir.get_dir(dirs_path);
-    return dir;
+    Dir parent_dir(parent);
+    File child_file(child);
+    parent_dir.add_file(child_file, type);
 }
 
 void Filesystem::write_file(std::string path, char *data)

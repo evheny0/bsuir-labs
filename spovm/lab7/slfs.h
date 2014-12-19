@@ -39,7 +39,7 @@ class Filesystem : public IFilesystem {
     char *get_file_info(int pos);
     char *get_file_data(int pos);
     Fileinfo get_file_info(std::string path);
-    Dir get_last_dir(std::vector<char *> dirs_path);
+    void add_file_to_dir(int child, int parent, int type);
     void write_dir(std::string path, char *data);
     void write_file(std::string path, char *data);
     void write_file(int pos, char *data);

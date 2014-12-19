@@ -3,12 +3,19 @@ namespace slfs {
 
 File::File()
 {
-
+    set_type();
 }
 
 File::File(std::string path)
 {
+    set_type();
     open(path);
+}
+
+File::File(int _link)
+{
+    set_type();
+    open(_link);
 }
 
 File::~File()
@@ -16,12 +23,18 @@ File::~File()
 
 }
 
+void File::set_type()
+{
+    type = FILE;
+}
+
 void File::open(std::string path)
 {
     this->path = path;
     Fileinfo i = IFilesystem::fs_manager->get_file_info(path);
     if (i.link_to_info == -1) {
-        create(i.filename, i.link_to_parent, FILE);
+        create(i.filename, i.link_to_parent, type);
+        IFilesystem::fs_manager->add_file_to_dir(info_link, parent_link, type);
     } else {
         open(i.link_to_info);
     }
@@ -40,12 +53,17 @@ void File::create(std::string _name, int _parent_link, int _type)
     parent_link = _parent_link;
     data_link = IFilesystem::fs_manager->create_datablock(&data);
     info_link = IFilesystem::fs_manager->create_infoblock(&info);
-    fill_infoblock(FILE);
+    fill_infoblock(type);
 }
 
 int File::get_info_link()
 {
     return info_link;
+}
+
+char *File::get_c_name()
+{
+    return (char *)name.c_str();
 }
 
 void File::write(char *str)
@@ -81,7 +99,7 @@ void File::fill_infoblock(int type)
     :link_to_data
     :link_to_parent_infoblock
     */
-    memcpy(info, &type, sizeof(type));
+    memcpy(info, &type, FILETYPE_SIZE);
     memcpy(info + FILETYPE_SIZE, name.c_str(), name.size());
     memcpy(info + FILETYPE_SIZE + FILENAME_SIZE, &data_link, LINK_SIZE);
     memcpy(info + FILETYPE_SIZE + FILENAME_SIZE + LINK_SIZE, &parent_link, LINK_SIZE);

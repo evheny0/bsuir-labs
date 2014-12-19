@@ -63,7 +63,7 @@ const int SUPER_BLOCK_START = 0;
 const int INFO_BLOCK_ARRAY_START = SUPER_BLOCK_SIZE;
 const int DATA_BLOCK_ARRAY_START = INFO_BLOCK_ARRAY_START + INFO_BLOCK_ARRAY_SIZE;
 
-const int FILETYPE_SIZE = 1;
+const int FILETYPE_SIZE = 4;
 const int FILENAME_SIZE = 30;
 const int LINK_SIZE = 4;
 const int LINK_TO_PARENT_SIZE = 4;
@@ -95,6 +95,7 @@ class IFilesystem {
     virtual char *get_file_data(int pos) { return NULL; };
     virtual int create_datablock(char **data) { return 0; };
     virtual int create_infoblock(char **info) { return 0; };
+    virtual void add_file_to_dir(int child, int parent, int type) {};
 };
 
 } // slfs

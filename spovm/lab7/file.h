@@ -10,6 +10,7 @@ namespace slfs {
 
 class File {
   protected:
+    int type;
     std::string path;
     std::string name;
     char *data;
@@ -22,8 +23,11 @@ class File {
   public:
     File();
     File(std::string path);
+    File(int _link);
     ~File();
+    virtual void set_type();
     int get_info_link();
+    char *get_c_name();
     void open(std::string path);
     void open(int _info_link);
     void create(std::string _name, int _parent_link, int _type);

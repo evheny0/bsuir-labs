@@ -1,13 +1,9 @@
 #include <iostream>
-#include "slfs.h"
+#include "file_manager.h"
 
 int main(int argc, char const *argv[])
 {
-    slfs::Filesystem::init("slfs.fs");
-
-    slfs::File lala("folder/two/file");
-    // lala.write("test");
-    puts(lala.read());
-    slfs::Filesystem::end();
+    slfs::FileManager file_manager;
+    file_manager.start();
     return 0;
 }

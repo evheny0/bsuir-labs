@@ -2,7 +2,17 @@
 
 namespace slfs {
 
-Dir::Dir()
+Dir::Dir() : File()
+{
+
+}
+
+Dir::Dir(std::string path) : File(path)
+{
+
+}
+
+Dir::Dir(int _link) : File(_link)
 {
 
 }
@@ -10,6 +20,11 @@ Dir::Dir()
 Dir::~Dir()
 {
 
+}
+
+void Dir::set_type()
+{
+    type = DIR;
 }
 
 void Dir::create(std::string _name, std::string _parent_path, int _parent_link)
@@ -53,12 +68,13 @@ Dir Dir::find_child_dir(std::string _name)
     return result;
 }
 
-void Dir::add_file(Dir &child, int type)
+void Dir::add_file(File &child, int type)
 {
     int link = find_free_block();
-    memcpy(data + link, child.name.c_str(), sizeof(type));
+    int child_info = child.get_info_link();
+    memcpy(data + link, child.get_c_name(), FILENAME_SIZE);
     memcpy(data + link + FILETYPE_IN_FOLDER_START, &type, FILETYPE_SIZE);
-    memcpy(data + link + LINK_IN_FOLDER_START, &child.info_link, LINK_SIZE);
+    memcpy(data + link + LINK_IN_FOLDER_START, &child_info, LINK_SIZE);
 }
 
 int Dir::find_free_block()
@@ -85,7 +101,28 @@ int Dir::get_file_link(std::string filename)
     return -1;
 }
 
+std::vector<Dir> Dir::get_dirs_list()
+{
+    std::vector<Dir> result;
+    std::vector<int> dirs = get_list(DIR);
+    for(auto i : dirs) {
+        Dir dir(i);
+        result.push_back(dir);
+    }
+    return result;
+}
 
-
+std::vector<int> Dir::get_list(int type)
+{
+    std::vector<int> result;
+    int link_to_file;
+    for (int i = 0; i < DATA_BLOCK_SIZE; i += FILE_SIZE_IN_FOLDER) {
+        if (data[i] && !memcmp(&type, data + i + FILENAME_SIZE, FILETYPE_SIZE)) {
+            memcpy(&link_to_file, data + i + LINK_IN_FOLDER_START, LINK_SIZE);
+            result.push_back(link_to_file);
+        }
+    }
+    return result;
+}
 
 } // slfs
