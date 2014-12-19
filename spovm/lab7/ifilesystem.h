@@ -13,10 +13,12 @@ enum FILETYPE {
     DIR
 };
 
-enum BLOCK_STATE {
-    EMPTY_BLOCK,
-    FULL_BLOCK
-};
+// enum BLOCK_STATE {
+//     EMPTY_BLOCK,
+//     FULL_BLOCK
+// };
+#define EMPTY_BLOCK false
+#define FULL_BLOCK true
 
 union Link_t {
     char str_link[4];
@@ -54,7 +56,7 @@ struct Fileinfo {
         :link_to_folder
 */
 
-const int SUPER_BLOCK_SIZE = 100;
+const int SUPER_BLOCK_SIZE = 1000;
 const int INFO_BLOCK_ARRAY_SIZE = 10000;
 const int DATA_BLOCK_ARRAY_SIZE = 100000;
 const int TOTAL_DISK_SIZE = SUPER_BLOCK_SIZE + INFO_BLOCK_ARRAY_SIZE + DATA_BLOCK_ARRAY_SIZE;
@@ -62,6 +64,12 @@ const int TOTAL_DISK_SIZE = SUPER_BLOCK_SIZE + INFO_BLOCK_ARRAY_SIZE + DATA_BLOC
 const int SUPER_BLOCK_START = 0;
 const int INFO_BLOCK_ARRAY_START = SUPER_BLOCK_SIZE;
 const int DATA_BLOCK_ARRAY_START = INFO_BLOCK_ARRAY_START + INFO_BLOCK_ARRAY_SIZE;
+
+const int INFO_MASK_START = 50;
+const int INFO_MASK_SIZE = 150;
+const int DATA_MASK_START = 200;
+const int DATA_MASK_SIZE = 150;
+const int CELL_SIZE = 8;
 
 const int FILETYPE_SIZE = 4;
 const int FILENAME_SIZE = 30;

@@ -13,6 +13,7 @@ class FileManager {
     FileManager();
     ~FileManager();
     void start();
+    void print_type(File *file, int pos);
 };
 
 

@@ -14,6 +14,7 @@ namespace gr {
 void init_ncurses();
 void stop_ncurses();
 void print_to(std::string str, int x = 0, int y = 0);
+void set_color(int color);
 
 } // gr
 

@@ -37,6 +37,8 @@ class File {
     void close();
     void get_data_from_infoblock();
     void fill_infoblock(int type);
+    int get_parent_link();
+    int get_type();
 };
 
 } // slfs

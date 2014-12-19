@@ -110,6 +110,16 @@ void File::close()
     // IFilesystem::fs_manager->write();
 }
 
+int File::get_parent_link()
+{
+    return parent_link;
+}
+
+int File::get_type()
+{
+    return type;
+}
+
 
 
 } // slfs

@@ -16,13 +16,16 @@ void stop_ncurses()
     endwin();
 }
 
+void set_color(int color)
+{
+    attrset(color);
+}
+
 void print_to(std::string str, int x, int y)
 {
-    // attron(A_BOLD);
-    // move(y, x);
-    // printw(str.c_str());
-    // refresh();
-    std::cout << str;
+    move(y, x);
+    printw(str.c_str());
+    refresh();
 }
 
 } // gr

@@ -52,8 +52,8 @@ void Filesystem::create()
 
 void Filesystem::init_masks()
 {
-    data_mask.resize(DATA_BLOCK_COUNT);
-    info_mask.resize(INFO_BLOCK_COUNT);
+    data_mask = (bool *) (fs_data + DATA_MASK_START);
+    info_mask = (bool *) (fs_data + INFO_MASK_START);
 }
 
 bool Filesystem::is_disk_valid()
@@ -144,7 +144,7 @@ char *Filesystem::read_data_from(int start)
 
 int Filesystem::create_datablock(char **data)
 {
-    int link = find_free_block(data_mask) * DATA_BLOCK_SIZE;
+    int link = find_free_block(data_mask, DATA_MASK_SIZE) * DATA_BLOCK_SIZE;
     *data = fs_data + DATA_BLOCK_ARRAY_START + link;
     return link;
 }
@@ -152,22 +152,21 @@ int Filesystem::create_datablock(char **data)
 
 int Filesystem::create_infoblock(char **info)
 {
-    int link = find_free_block(info_mask) * INFO_BLOCK_SIZE;
+    int link = find_free_block(info_mask, INFO_MASK_SIZE) * INFO_BLOCK_SIZE;
     *info = fs_data + INFO_BLOCK_ARRAY_START + link;
     return link;
 }
 
-int Filesystem::find_free_block(std::vector<int> &mask)
+int Filesystem::find_free_block(bool *mask, int size)
 {
-    std::vector<int>::iterator it = find(mask.begin(), mask.end(), EMPTY_BLOCK);
-    int index = std::distance(mask.begin(), it);
-    if (it != mask.end()) {
-        mask[index] = FULL_BLOCK;
-        return index;
-    } else {
-        Logger::puts("Disk is full!\n");
-        return -1;
+    for(int i = 0; i < size * CELL_SIZE; i++) {
+        if (mask[i] == EMPTY_BLOCK) {
+            mask[i] = FULL_BLOCK;
+            return i;
+        }
     }
+    Logger::puts("Disk is full!\n");
+    return -1;
 }
 
 

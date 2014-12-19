@@ -22,8 +22,9 @@ class Dir : public File {
     void add_file(File &child, int type);
     int find_free_block();
     int get_file_link(std::string filename);
-    std::vector<int> get_list(int type);
+    std::vector<int> get_list(int type = -1);
     std::vector<Dir> get_dirs_list();
+    std::vector<File *> get_all_files_list();
 };
 
 } // slfs

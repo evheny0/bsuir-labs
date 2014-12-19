@@ -21,8 +21,8 @@ class Filesystem : public IFilesystem {
     std::string disk_name;
     Dir root_dir;
     char *fs_data;
-    std::vector<int> data_mask;
-    std::vector<int> info_mask;
+    bool *data_mask;
+    bool *info_mask;
 
     Filesystem();
     Filesystem(std::string name);
@@ -51,7 +51,7 @@ class Filesystem : public IFilesystem {
   private:
     void init_masks();
     void init_root_dir();
-    int find_free_block(std::vector<int> &mask);
+    int find_free_block(bool *mask, int size);
 };
 
 } // slfs
