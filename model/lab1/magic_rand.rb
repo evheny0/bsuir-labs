@@ -6,7 +6,7 @@ class MagicRand
   attr_writer :seed
 
   def initialize
-    @seed = @prev = Time.now.to_i
+    @seed = @prev = 1
   end
 
   def get
