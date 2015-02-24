@@ -4,8 +4,8 @@ class MagicRand
   attr_accessor :seed, :a, :m
   
   def initialize
-    @seed = @prev = 10000
-    @m = 999999999
+    @seed = @prev = 10_000
+    @m = 999_999_999
     @a = @m - 9
   end
 

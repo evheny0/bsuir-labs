@@ -8,23 +8,23 @@ def print_histogram(array, size)
   end
 end
 
-def get_new_rand
+def new_rand
   new_rand = MagicRand.new
-  printf "Enter new params? (y/n): "
+  printf 'Enter new params? (y/n): '
   if gets.chomp == 'y'
-    printf "Enter M: "
+    printf 'Enter M: '
     new_rand.m = gets.to_i
-    printf "Enter A: "
+    printf 'Enter A: '
     new_rand.a = gets.to_i
-    printf "Enter seed: "
+    printf 'Enter seed: '
     new_rand.seed = gets.to_i
   else
-    puts "Using default params..."
+    puts 'Using default params...'
   end
   new_rand
 end
 
-analyzer = RandAnalyzer.new(get_new_rand)
+analyzer = RandAnalyzer.new(new_rand)
 hist = analyzer.histogram
 puts " ** EXPECTATION: #{analyzer.expectation}"
 puts " ** DISPERSION: #{analyzer.dispersion}"
