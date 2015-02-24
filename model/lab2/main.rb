@@ -9,24 +9,23 @@ require '../lab1/rand_analyzer'
 
 
 
-def print_distribution_params
-  analyzer = RandAnalyzer.new(rand_class.new)
+def print_distribution_params analyzer
   puts '================================================='
-  puts " ***** #{rand_class.to_s} *****"
+  puts " ***** #{analyzer.class.to_s} *****"
   puts " ** EXPECTATION: #{analyzer.expectation}"
   puts " ** DISPERSION: #{analyzer.dispersion}"
   puts " ** STANDARD DEVIATION: #{analyzer.standard_deviation}"
   puts "=================================================\n\n"
 end
 
-def display_histogram
+def display_histogram analyzer
   hist = analyzer.histogram.sort_by { |a, _| a }.to_h
   x = hist.keys.map { |i| i.round 4 }
   y = hist.values.map { |i| i.to_f / analyzer.size }
 
   Gnuplot.open do |gp|
     Gnuplot::Plot.new(gp) do |plot|
-      plot.title rand_class.to_s
+      plot.title analyzer.class.to_s
       plot.style 'data histograms'
       plot.xtics 'nomirror rotate by -45'
       # plot.yrange '[0.0:1]'
@@ -39,8 +38,9 @@ def display_histogram
 end
 
 def print_analysis_results(rand_class)
-  print_distribution_params
-  display_histogram
+  analyzer = RandAnalyzer.new(rand_class.new)
+  print_distribution_params analyzer
+  display_histogram analyzer
 end
 
 print_analysis_results UniformDistribution
