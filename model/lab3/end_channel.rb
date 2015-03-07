@@ -3,7 +3,8 @@ require './block.rb'
 module Blocks
   class EndChannel < Block
     def action
-      if event_happend? && @prev_block.clear_pending_request == 0
+      return generate_event unless event_happend?
+      if @prev_block.clear_pending_request == 0
         @state -= 1
       else
         generate_event

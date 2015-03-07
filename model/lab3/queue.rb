@@ -4,14 +4,6 @@ module Blocks
   CAPACITY = 1
 
   class Queue < Block
-    def action
-      if @next_block.add_request
-        @state -= 1
-      else
-        generate_event
-      end
-    end
-
     def add_request
       return false if state == CAPACITY
       unless @next_block.add_request

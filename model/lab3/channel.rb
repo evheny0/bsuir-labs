@@ -3,14 +3,11 @@ require './block.rb'
 module Blocks
   class Channel < Block
     def action
-      if event_happend?
-        if @next_block.add_request
-          @state -= 1
-        else
-          @blocked = true
-        end
+      return generate_event unless event_happend?
+      if @next_block.add_request
+        @state -= 1
       else
-        generate_event
+        @blocked = true
       end
     end
 
