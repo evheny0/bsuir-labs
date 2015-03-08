@@ -5,7 +5,7 @@ module Blocks
     attr_reader :blocked, :state
     attr_writer :prev_block, :next_block
 
-    def initialize model, params = {}
+    def initialize(model, params = {})
       @model = model
       @probability = params[:probability] || 1
       @state = 0
@@ -16,8 +16,6 @@ module Blocks
     end
 
     def add_request
-      @state += 1
-      generate_event
     end
 
     def generate_event
@@ -28,10 +26,8 @@ module Blocks
       rand > @probability
     end
 
-    def event_happend &block  # check THIS!!!
-      if rand > @probability
-        yield block
-      end
+    def event_happend(&block)
+      yield block if rand > @probability
     end
   end
 end

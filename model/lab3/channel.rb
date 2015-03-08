@@ -17,7 +17,7 @@ module Blocks
       generate_event
     end
 
-    def clear_pending_request
+    def pop_pending_request
       return 0 unless @blocked
       @blocked = false
       @state -= 1

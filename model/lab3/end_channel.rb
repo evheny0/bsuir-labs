@@ -4,7 +4,7 @@ module Blocks
   class EndChannel < Block
     def action
       return generate_event unless event_happend?
-      if @prev_block.clear_pending_request == 0
+      if @prev_block.pop_pending_request == 0
         @state -= 1
       else
         generate_event

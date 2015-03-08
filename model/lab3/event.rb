@@ -1,5 +1,5 @@
 class Event
-  def initialize block
+  def initialize(block)
     @block = block
   end
 

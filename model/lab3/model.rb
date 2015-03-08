@@ -9,14 +9,14 @@ class Model
     initialize_blocks
     link_blocks
     @events = [Event.new(@blocks.first)]
-    @states = []
+    @states_log = []
   end
 
-  def add_event event
+  def add_event(event)
     @events << event
   end
 
-  def start count
+  def start(count)
     count.times do |_|
       handle_events
       save_state
@@ -24,9 +24,8 @@ class Model
   end
 
   def save_state
-    s = @blocks.map(&:state).join("")
-    @states << s
-    puts s
+    s = @blocks.map(&:state)
+    @states_log << s
   end
 
   private
@@ -34,9 +33,7 @@ class Model
   def handle_events
     processed_events = @events
     @events = []
-    processed_events.each do |e|
-      e.handle
-    end
+    processed_events.each(&:handle)
   end
 
   def initialize_blocks
