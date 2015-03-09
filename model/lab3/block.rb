@@ -19,7 +19,7 @@ module Blocks
     end
 
     def generate_event
-      @model.add_event Event.new self
+      @model.add_event self
     end
 
     def event_happend?
