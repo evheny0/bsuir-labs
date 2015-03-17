@@ -5,8 +5,8 @@ require './queue.rb'
 require './end_channel.rb'
 
 class Model
-  def initialize
-    initialize_blocks
+  def initialize(pi1 = 0.5)
+    initialize_blocks pi1
     link_blocks
     @events = [@blocks.first]
     @states_log = []
@@ -39,10 +39,10 @@ class Model
     @states_log << @blocks.map(&:state)
   end
 
-  def initialize_blocks
+  def initialize_blocks(pi1)
     @blocks = []
     @blocks << Blocks::Source.new(self, probability: 0.5)
-    @blocks << Blocks::Channel.new(self, probability: 0.5)  # WILL CHANGE
+    @blocks << Blocks::Channel.new(self, probability: pi1)
     @blocks << Blocks::Queue.new(self)
     @blocks << Blocks::EndChannel.new(self, probability: 0.4)
   end

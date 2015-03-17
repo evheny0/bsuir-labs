@@ -4,7 +4,12 @@ module Blocks
   class Source < Block
     def action
       generate_event
-      @next_block.add_request if event_happend?
+      if event_happend?
+        @state = 1
+        @next_block.add_request
+      else
+        @state = 0
+      end
     end
   end
 end
