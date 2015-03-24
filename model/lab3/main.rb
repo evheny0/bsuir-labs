@@ -21,7 +21,7 @@ puts "denial: #{(log[[1,1,0,0]] +
                  log[[1,2,1,1]]) / size}".colorize(:red)
 
 0.step(10, 2) do |i| 
-  m = Model.new i / 10
+  m = Model.new i / 10.0
   m.start 100_000
   log = m.log
   log = log.inject(Hash.new { |h, k| h[k] = 0 }) { |h, l| h[l] += 1; h }
