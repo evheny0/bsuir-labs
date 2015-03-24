@@ -1,5 +1,3 @@
-require './event.rb'
-
 module Blocks
   class Block
     attr_reader :blocked, :state

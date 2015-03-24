@@ -1,11 +1,10 @@
-require './event.rb'
 require './source.rb'
 require './channel.rb'
 require './end_channel.rb'
 
 class Model
-  def initialize(prob = 0.5)
-    initialize_blocks prob
+  def initialize(prob = 0.5, end_channel_intensity = 5)
+    initialize_blocks prob, end_channel_intensity
     link_blocks
     @states_log = []
   end
@@ -29,16 +28,15 @@ class Model
 
   def save_state
     @states_log << @blocks.map(&:state)
-    # p @blocks.map(&:state)
   end
 
-  def initialize_blocks(prob)
+  def initialize_blocks(prob, end_channel_intensity)
     @blocks = []
     @blocks << Blocks::Source.new(self, intensity: 9)
     @blocks << Blocks::Channel.new(self, intensity: 3, probability: prob)
     @blocks << Blocks::Channel.new(self, intensity: 3, probability: prob)
     @blocks << Blocks::Channel.new(self, intensity: 3, probability: prob)
-    @blocks << Blocks::EndChannel.new(self, intensity: 5)
+    @blocks << Blocks::EndChannel.new(self, intensity: end_channel_intensity)
   end
 
   def link_blocks
