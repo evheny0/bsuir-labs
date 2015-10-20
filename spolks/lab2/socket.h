@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>    // write
+#define SHUT_ALL SHUT_RDWR
 typedef int SOCKET;
 
 #elif _WIN32
@@ -22,6 +23,7 @@ typedef int SOCKET;
 #include <windows.h>
 #include <ws2tcpip.h>
 #include <stdlib.h>
+#define SHUT_ALL SD_BOTH
 
 #endif
 
@@ -32,6 +34,7 @@ class Socket
     SOCKET socket_object;
   public:
     Socket();
+    Socket(SOCKET initial_socket);
     ~Socket();
     Socket *build_tcp_socket();
     SOCKET get_obj();

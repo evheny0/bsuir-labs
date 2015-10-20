@@ -1,6 +1,6 @@
 #include "client.h"
 
-Client::Client()
+Client::Client(char *ip, int port) : BasicSocketHandler(ip, port)
 {
     
 }

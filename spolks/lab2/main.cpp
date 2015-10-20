@@ -11,5 +11,8 @@ int main(int argc, char const *argv[])
     }
     #endif
 
+    Server server("127.0.0.1", 8889);
+    server.wait_for_connection();
+
     return 0;
 }

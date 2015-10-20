@@ -5,7 +5,7 @@
 
 class Client: public BasicSocketHandler {
   public:
-    Client();
+    Client(char *ip, int port);
     ~Client();
     
 };
