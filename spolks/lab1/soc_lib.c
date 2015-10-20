@@ -1,16 +1,12 @@
 #include "soc_lib.h"
 
-#ifdef __linux__
-#elif _WIN32
-#endif
-
 
 SOCKET build_socket()
 {
     #ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        printf("WSAStartup failed with error: %d\n", result);
+        printf("WSAStartup failed");
         exit(1);
     }
     #endif
@@ -39,7 +35,7 @@ struct sockaddr_in build_server_address()
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
-    server.sin_port = htons(8888);
+    server.sin_port = htons(8889);
     return server;
 }
 

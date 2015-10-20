@@ -15,20 +15,31 @@ int main(int argc, char *argv[])
 
 int main_echo_cycle(SOCKET client_sock)
 {
-    int read_size;
-    char client_message[READ_SIZE], buffer[BUFFER_SIZE], dbg[] = "Message: ";
+    int read_size, current_read_position = 0;
+    char client_message[READ_SIZE], buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
 
     while((read_size = recv(client_sock, client_message, READ_SIZE, 0)) > 0) {
-        // sleep(5);
-        sprintf(buffer, "%s%s", buffer, client_message);
-        if (client_message[read_size - 1] == '\n') {
-            write(client_sock, dbg, strlen(dbg));
-            write(client_sock, buffer, strlen(buffer));
-            memset(buffer, 0, BUFFER_SIZE);
-        } 
-        printf("%s", client_message);
+        for (unsigned i = 0; i < read_size; ++i) {
+            buffer[current_read_position] = client_message[i];
+            if (client_message[i] == 10) {
+                message_ready(buffer, client_sock);
+                current_read_position = 0;
+                memset(buffer, 0, BUFFER_SIZE);
+            } else {
+                current_read_position++;
+            }
+        }
         memset(client_message, 0, READ_SIZE);
     }
     return read_size;
+}
+
+void message_ready(const char *buffer, SOCKET client_sock)
+{
+    char dbg[] = "Message: ";
+    send(client_sock, dbg, strlen(dbg), 0);
+    send(client_sock, buffer, strlen(buffer), 0);
+
+    puts(buffer);
 }
