@@ -20,19 +20,25 @@ int main_echo_cycle(SOCKET client_sock)
     memset(buffer, 0, BUFFER_SIZE);
 
     while((read_size = recv(client_sock, client_message, READ_SIZE, 0)) > 0) {
-        for (unsigned i = 0; i < read_size; ++i) {
-            buffer[current_read_position] = client_message[i];
-            if (client_message[i] == 10) {
-                message_ready(buffer, client_sock);
-                current_read_position = 0;
-                memset(buffer, 0, BUFFER_SIZE);
-            } else {
-                current_read_position++;
-            }
-        }
+        process_message_and_send(client_message, read_size, buffer, current_read_position, client_sock);
         memset(client_message, 0, READ_SIZE);
     }
     return read_size;
+}
+
+void process_message_and_send(char *client_message, int read_size, char *buffer, int current_read_position, SOCKET client_sock)
+{
+    int i;
+    for (i = 0; i < read_size; ++i) {
+        buffer[current_read_position] = client_message[i];
+        if (client_message[i] == 10) {
+            message_ready(buffer, client_sock);
+            current_read_position = 0;
+            memset(buffer, 0, BUFFER_SIZE);
+        } else {
+            current_read_position++;
+        }
+    }
 }
 
 void message_ready(const char *buffer, SOCKET client_sock)

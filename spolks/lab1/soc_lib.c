@@ -80,6 +80,12 @@ void check_recv_last_response(int read_size)
 
 void cleanup(SOCKET server_socket, SOCKET client_sock)
 {
+    #ifdef _WIN32
+    shutdown(client_sock, SD_SEND);
+    closesocket(server_socket);
+    closesocket(client_sock);
+    #elif __linux__
     close(server_socket);
     close(client_sock);
+    #endif
 }
