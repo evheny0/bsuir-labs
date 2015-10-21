@@ -36,6 +36,7 @@ struct Package {
     int last_position;
     Package()
     {
+        data = "";
         size = 0;
         last_position = 0;
     }
