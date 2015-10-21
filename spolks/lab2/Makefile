@@ -1,5 +1,5 @@
-OBJ = main.o basic_socket_handler.o client.o server.o socket.o
-CFLAGS = -Wall -pedantic
+OBJ = main.o basic_socket_handler.o client.o server.o socket.o utils.o
+CFLAGS = -Wall -pedantic -std=c++11
 
 all: nix
 

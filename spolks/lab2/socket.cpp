@@ -14,9 +14,9 @@ Socket *Socket::build_tcp_socket()
 {
     socket_object = socket(AF_INET , SOCK_STREAM, 0);
     if (socket_object == -1) {
-        puts("Could not create socket");
+        puts(" * Could not create socket");
     } else {
-        puts("Socket created");
+        puts(" * Socket created");
     }
     return this;
 }
@@ -29,6 +29,7 @@ Socket::~Socket()
         #ifdef _WIN32
         closesocket(socket_object);
         #elif __linux__
+        puts(" * socket closed");
         close(socket_object);
         #endif
     }

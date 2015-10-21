@@ -3,8 +3,6 @@
 
 #ifdef __linux__
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>    // strlen
 #include <sys/socket.h>
 #include <arpa/inet.h> // inet_addr
@@ -17,20 +15,51 @@ typedef int SOCKET;
 // link with Ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
 #undef UNICODE
-#include <stdio.h>
 #include <conio.h>
 #include <WinSock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
-#include <stdlib.h>
 #define SHUT_ALL SD_BOTH
 
 #endif
 
+#include <stdio.h>
+#include <string>
+#include <stdlib.h>
+
+const int BUFFER_MESSAGE_SIZE = 1024;
 
 
-class Socket
-{
+struct Package {
+    std::string data;
+    long size;
+    int last_position;
+    Package()
+    {
+        size = 0;
+        last_position = 0;
+    }
+    Package(const char *package_data)
+    {
+        data = package_data;
+        size = data.size();
+        last_position = 0;
+    }
+    Package(std::string package_data)
+    {
+        data = package_data;
+        size = data.size();
+        last_position = 0;
+    }
+    Package(std::string package_data, int package_size)
+    {
+        data = package_data;
+        size = package_size;
+        last_position = 0;
+    }
+};
+
+class Socket {
     SOCKET socket_object;
   public:
     Socket();
