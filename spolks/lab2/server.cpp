@@ -45,7 +45,7 @@ void Server::send_file()
 {
     char buffer[BUFFER_MESSAGE_SIZE];
     Package package;
-    std::ifstream file("file_to_send.txt", std::ios::binary);
+    std::ifstream file(FILENAME, std::ios::binary);
     int last_position = get_last_position_from_client();
     send_filesize_to_client();
 
@@ -54,9 +54,11 @@ void Server::send_file()
     while (!file.eof()) {
         file.read(buffer, BUFFER_MESSAGE_SIZE);
         package.size = file.gcount();
-        std::cout << "Data send " << package.size << "\n";
+        // std::cout << "Data send " << buffer << "\n";
         buffer[package.size] = '\0';
+        package.data.resize(package.size);
         package.data = buffer;
+        std::cout << package.data.size() << "\n";
         send_raw_package_to(_client_socket, package);
     }
 
@@ -75,7 +77,7 @@ int Server::get_last_position_from_client()
 void Server::send_filesize_to_client()
 {
     std::string filesize_string;
-    filesize_string = to_string_fixed((int) filesize("Fronalpstock_big.jpg"));
+    filesize_string = to_string_fixed((int) filesize(FILENAME));
     std::cout << " * Filesize: " << filesize_string << "\n";
     Package package(filesize_string);
     send_package_to(_client_socket, package);

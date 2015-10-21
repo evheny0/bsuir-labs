@@ -23,16 +23,17 @@ void Client::connect_to_server()
 void Client::recieve_file()
 {
     Package package;
-    std::fstream file("file_to_recieve.txt", std::fstream::out | std::fstream::in | std::ofstream::ate);
+    std::fstream file("file_to_recieve.txt", std::fstream::out | std::fstream::in | std::ofstream::ate | std::ios::binary);
     long last_position = file.tellp();
     send_last_position_to_server(last_position);
     int filesize = get_filesize_from_server();
 
     while (last_position < filesize) {
         package = recieve_raw_package_from(_socket_ptr);
+        std::cout << package.data.size() << package.size << "\n";
         file.write(package.data.c_str(), package.size);
         last_position += package.size;
-        std::cout << " * Downloaded: " << last_position * 100.0 / filesize << "\%\n";
+        std::cout << " * Downloaded: " << last_position * 100.0 / filesize << "\% :: " << "last: " << last_position << " total: " << filesize << "\n";
     }
     std::cout << " * Downloaded: 100\%\n";
 

@@ -11,6 +11,7 @@ const int CHECK_CODE_SIZE = 2;
 
 class BasicSocketHandler {
     std::string _last_data;
+    int _last_data_size;
     Package _last_package;
 
   protected:

@@ -3,6 +3,9 @@
 
 #include "basic_socket_handler.h"
 
+// const char FILENAME[100] = "file_to_send.txt";
+const char FILENAME[100] = "234.png";
+
 class Server: public BasicSocketHandler {
     Socket *_client_socket;
   public:

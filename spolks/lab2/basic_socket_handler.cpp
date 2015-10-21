@@ -5,6 +5,7 @@ BasicSocketHandler::BasicSocketHandler(const char *ip, int port)
     _socket_ptr = (new Socket())->build_tcp_socket();
     _server_addres = build_server_address(ip, port);
     _last_data = "";
+    _last_data_size = 0;
 }
 
 BasicSocketHandler::~BasicSocketHandler()
@@ -29,12 +30,14 @@ Package BasicSocketHandler::recieve_raw_package_from(Socket *from_socket)
 
     if (_last_data.size() > 0) {
         package.data = _last_data;
-        package.size = _last_data.size();
+        package.size = _last_data_size;
         _last_data = "";
         return package;
     }
-    read_size = recv(from_socket->get_obj(), client_message_raw, BUFFER_MESSAGE_SIZE + CHECK_CODE_SIZE, 0);
+    read_size = recv(from_socket->get_obj(), client_message_raw, BUFFER_MESSAGE_SIZE, 0);
     package.size = read_size;
+    package.data.resize(read_size);
+    std::cout << client_message_raw << "\n";
     package.data = client_message_raw;
     return package;
 }
@@ -67,10 +70,12 @@ Package BasicSocketHandler::recieve_package_from(Socket *from_socket)
             package.data = _last_data;
             package.size = package.data.size();
             _last_data = "";
+            _last_data_size = 0;
         } else {
             package.data = _last_data.substr(0, position);
             package.size = package.data.size();
             _last_data = _last_data.substr(position);
+            _last_data_size -= position;
             return package;
         }
     }
@@ -89,6 +94,7 @@ Package BasicSocketHandler::recieve_package_from(Socket *from_socket)
             package.data += client_message.substr(0, position);
             package.size = package.data.size();
             _last_data = client_message.substr(position + 2, read_size);
+            _last_data_size = read_size - position - 2;
         }
     } while (false);
     return package;
