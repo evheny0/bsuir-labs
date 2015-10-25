@@ -55,10 +55,7 @@ void Server::send_file()
         file.read(buffer, BUFFER_MESSAGE_SIZE);
         package.size = file.gcount();
         // std::cout << "Data send " << buffer << "\n";
-        buffer[package.size] = '\0';
-        package.data.resize(package.size);
-        package.data = buffer;
-        std::cout << package.data.size() << "\n";
+        memcpy(package.data, buffer, package.size);
         send_raw_package_to(_client_socket, package);
     }
 
@@ -70,7 +67,7 @@ int Server::get_last_position_from_client()
 {
     Package package = recieve_package_from(_client_socket);
     std::cout << " * Last position: " << package.data << "\n";
-    int position = atoi(package.data.c_str());
+    int position = atoi(package.data);
     return position;
 }
 
@@ -79,7 +76,7 @@ void Server::send_filesize_to_client()
     std::string filesize_string;
     filesize_string = to_string_fixed((int) filesize(FILENAME));
     std::cout << " * Filesize: " << filesize_string << "\n";
-    Package package(filesize_string);
+    Package package(filesize_string.c_str(), filesize_string.size());
     send_package_to(_client_socket, package);
 }
 

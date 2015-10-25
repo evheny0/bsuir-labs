@@ -27,37 +27,38 @@ typedef int SOCKET;
 #include <string>
 #include <stdlib.h>
 
-const int BUFFER_MESSAGE_SIZE = 1024;
+const int BUFFER_MESSAGE_SIZE = 1000000;
 
 
 struct Package {
-    std::string data;
+    char data[BUFFER_MESSAGE_SIZE];
     long size;
     int last_position;
     Package()
     {
-        data = "";
+        memset(data, 0, BUFFER_MESSAGE_SIZE);
         size = 0;
         last_position = 0;
     }
-    Package(const char *package_data)
+    Package(const char *package_data, int new_size)
     {
-        data = package_data;
-        size = data.size();
+        memset(data, 0, BUFFER_MESSAGE_SIZE);
+        memcpy(data, package_data, new_size);
+        size = new_size;
         last_position = 0;
     }
-    Package(std::string package_data)
-    {
-        data = package_data;
-        size = data.size();
-        last_position = 0;
-    }
-    Package(std::string package_data, int package_size)
-    {
-        data = package_data;
-        size = package_size;
-        last_position = 0;
-    }
+    // Package(std::string package_data)
+    // {
+    //     data = package_data;
+    //     size = data.size();
+    //     last_position = 0;
+    // }
+    // Package(std::string package_data, int package_size)
+    // {
+    //     data = package_data;
+    //     size = package_size;
+    //     last_position = 0;
+    // }
 };
 
 class Socket {

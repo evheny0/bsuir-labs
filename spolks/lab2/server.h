@@ -4,7 +4,9 @@
 #include "basic_socket_handler.h"
 
 // const char FILENAME[100] = "file_to_send.txt";
-const char FILENAME[100] = "234.png";
+// const char FILENAME[100] = "234.png";
+// const char FILENAME[100] = "Fronalpstock_big.jpg";
+const char FILENAME[100] = "ubuntu-14.04-desktop-amd64.iso";
 
 class Server: public BasicSocketHandler {
     Socket *_client_socket;

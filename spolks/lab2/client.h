@@ -3,8 +3,10 @@
 
 #include "basic_socket_handler.h"
 
+const char FILENAME_RECIEVE[100] = "file_to_recieve.jpg";
+
 class Client: public BasicSocketHandler {
-    
+    std::fstream _file;
   public:
     Client(const char *ip, int port);
     ~Client();
@@ -13,8 +15,8 @@ class Client: public BasicSocketHandler {
 
   private:
     void send_last_position_to_server(long last_position);
-    void send_end_to_server();
     int get_filesize_from_server();
+    void open_file();
 };
 
 #endif // CLIENT_H

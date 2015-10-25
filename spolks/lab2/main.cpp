@@ -14,12 +14,12 @@ void prepare_socket()
 int main(int argc, char const *argv[])
 {
     prepare_socket();
-    if (argc > 1 && !strcmp(argv[1], "server")) {
-        Server server("127.0.0.1", 8889);
+    if (argc > 3 && !strcmp(argv[1], "server")) {
+        Server server(argv[2], atoi(argv[3]));
         server.wait_for_connection();
         server.send_file();
-    } else if (argc > 1 && !strcmp(argv[1], "client")) {
-        Client client("127.0.0.1", 8889);
+    } else if (argc > 3 && !strcmp(argv[1], "client")) {
+        Client client(argv[2], atoi(argv[3]));
         client.connect_to_server();
         client.recieve_file();
     }
