@@ -5,6 +5,10 @@
 #include "server.h"
 #include "client.h"
 #include "socket.h"
+#include <signal.h>
+#include <streambuf>
+
+int is_interrupted = 0;
 
 
 

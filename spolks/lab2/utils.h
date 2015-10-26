@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <iostream>
+
 
 template <typename T>
 std::string to_string_fixed(T value)
@@ -14,6 +16,7 @@ std::string to_string_fixed(T value)
 }
 
 std::ifstream::pos_type filesize(const char* filename);
-int find_position(std::string string, const char *substring, int last_position = 0);
+long long int find_position(std::string string, const char *substring, int last_position = 0);
+long long int stoll_fixed(char *str_raw);
 
 #endif // UTILS_H

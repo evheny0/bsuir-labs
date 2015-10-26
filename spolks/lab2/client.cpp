@@ -2,6 +2,16 @@
 
 Client::Client(const char *ip, int port) : BasicSocketHandler(ip, port)
 {
+    set_recieving_timeout();
+}
+
+Client::~Client()
+{
+    _file.close();
+}
+
+void Client::set_recieving_timeout()
+{
     #ifdef __linux__
     struct timeval timeout;      
     timeout.tv_sec = 10;
@@ -10,14 +20,9 @@ Client::Client(const char *ip, int port) : BasicSocketHandler(ip, port)
     DWORD timeout = 1;
     #endif
 
-    if (setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+    if (setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0) {
         puts("setsockopt failed");
     }
-}
-
-Client::~Client()
-{
-    _file.close();
 }
 
 void Client::connect_to_server()
@@ -32,26 +37,37 @@ void Client::connect_to_server()
 
 void Client::recieve_file()
 {
-    Package package;
     open_file();
-    long last_position = _file.tellp();
+    std::ifstream::pos_type last_position = _file.tellp();
     if (last_position == -1) {
         last_position = 0;
     }
     send_last_position_to_server(last_position);
-    int filesize = get_filesize_from_server();
+    std::ifstream::pos_type filesize = get_filesize_from_server();
 
-    while (last_position < filesize) {
+    do_file_recieve(last_position, filesize);
+    std::cout << " * File downloaded\n";
+}
+
+void Client::do_file_recieve(long long last_position, long long filesize)
+{
+    int cycle_counter = 0;
+    Package package;
+    TransmissionRater rater;
+    while ((last_position < filesize) && !is_interrupted) {
         package = recieve_raw_package_from(_socket_ptr);
         if (package.size == -1) {
             connect_to_server();
             continue;
         }
+        rater.add_bytes(package.size);
         _file.write(package.data, package.size);
         last_position += package.size;
-        // std::cout << " * Downloaded: " << last_position * 100.0 / filesize << "\% :: " << "last: " << last_position << " total: " << filesize << "\n";
+        if (!(++cycle_counter % CYCLES_FOR_PRINT)) {
+            std::cout << " * Downloaded: " << last_position * 100.0 / filesize << "\% :: ";
+            std::cout << rater.get_rate_MBs() << " MB/s\n";
+        }
     }
-    std::cout << " * Downloaded: 100\%\n";
 }
 
 void Client::open_file()
@@ -73,9 +89,9 @@ void Client::send_last_position_to_server(long last_position)
     send_package_to(_socket_ptr, package);
 }
 
-int Client::get_filesize_from_server()
+std::ifstream::pos_type Client::get_filesize_from_server()
 {
     Package package = recieve_package_from(_socket_ptr);
     std::cout << " * Filesize is: " << package.data << "\n";
-    return atoi(package.data);
+    return stoll_fixed(package.data);
 }
