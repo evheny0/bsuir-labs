@@ -63,21 +63,14 @@ void Client::do_file_recieve(long long last_position, long long filesize)
         }
         rater.add_bytes(package.size);
         _file.write(package.data, package.size);
-        // write_to_file_or_buffer(package, cycle_counter);
         last_position += package.size;
         if (!(++cycle_counter % CYCLES_FOR_PRINT)) {
             std::cout << " * Downloaded: " << last_position * 100.0 / filesize << "\% :: ";
             std::cout << rater.get_rate_MBs() << " MB/s\n";
         }
     }
-    // write_rest_to_file();
     package.free();
 }
-
-// void Client::write_to_file_or_buffer(Package &package, int iteration)
-// {
-    
-// }
 
 void Client::open_file()
 {

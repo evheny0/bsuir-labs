@@ -139,7 +139,6 @@ void Server::send_file_to_connected()
         if (!(*it)->get_file().eof()) {
             (*it)->get_file().read(_package.data, BUFFER_MESSAGE_SIZE);
             _package.size = (*it)->get_file().gcount();
-            // memcpy(package.data, _message_buffer, package.size);
             send_raw_package_to((*it)->get_socket(), _package);
         } else {
             puts(" * End of file");

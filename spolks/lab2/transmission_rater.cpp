@@ -44,7 +44,7 @@ double TransmissionRater::get_rate()
 
 double TransmissionRater::get_rate_MBs()
 {
-    return get_rate() / 8000000;
+    return get_rate() / 800000;
 }
 
 void TransmissionRater::print_rate()
