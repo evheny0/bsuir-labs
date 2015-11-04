@@ -24,7 +24,7 @@ void BasicSocketHandler::recieve_raw_package_from(Socket *from_socket, Package &
 {
     int read_size;
     char client_message_raw[BUFFER_MESSAGE_SIZE];
-    package.clear_data();
+    // package.clear_data();
 
     read_size = recv(from_socket->get_obj(), client_message_raw, size, 0);
     package.size = read_size;

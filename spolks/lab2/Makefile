@@ -1,4 +1,4 @@
-OBJ = main.o basic_socket_handler.o client.o server.o socket.o utils.o transmission_rater.o client_connection_state.o
+OBJ = main.o basic_socket_handler.o client.o server.o socket.o utils.o transmission_rater.o client_connection_state.o package.o
 CFLAGS = -Wall -pedantic -std=c++11 -m64 -std=gnu++0x
 CPPFLAGS = -std=c++11 -m64
 

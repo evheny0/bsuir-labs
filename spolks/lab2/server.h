@@ -18,8 +18,8 @@ typedef DWORD TIMEOUT_T;
 // const char FILENAME[100] = "234.png";
 // const char FILENAME[100] = "Fronalpstock_big.jpg";
 // const char FILENAME[100] = "ubuntu-14.04-desktop-amd64.iso";
-const char FILENAME[100] = "/home/eugene0/Downloads/Windows 7 PROFESSIONAL Rus x64 Game OS v1.0 by CUTA.iso";
-// const char FILENAME[100] = "/home/eugene0/Downloads/ubuntu-14.04-desktop-amd64.iso";
+// const char FILENAME[100] = "/home/eugene0/Downloads/Windows 7 PROFESSIONAL Rus x64 Game OS v1.0 by CUTA.iso";
+const char FILENAME[100] = "/home/eugene0/Downloads/ubuntu-14.04-desktop-amd64.iso";
 
 extern int is_interrupted;
 const int CYCLES_TO_CHECK_CONNECTIONS = 5;

@@ -80,7 +80,6 @@ void Server::create_new_connection()
     SOCKET sock;
     int sockaddr_in_size = sizeof(struct sockaddr_in);
     if (FD_ISSET(_socket_ptr->get_obj(), &_socket_set)) {
-        puts("Hi there");
         sock = accept(_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
         if (sock < 0) {
             puts(" - Accept failed");
