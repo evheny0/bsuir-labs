@@ -27,25 +27,40 @@ typedef int SOCKET;
 #include <string>
 #include <stdlib.h>
 
-const int BUFFER_MESSAGE_SIZE = 1000000;
+static int BUFFER_MESSAGE_SIZE = 1000000;
 
 
 struct Package {
-    char data[BUFFER_MESSAGE_SIZE];
+    char *data;
     long size;
-    int last_position;
+    bool delete_link;
+
     Package()
     {
-        memset(data, 0, BUFFER_MESSAGE_SIZE);
+        data = new char[BUFFER_MESSAGE_SIZE]();
+        // memset(data, 0, BUFFER_MESSAGE_SIZE);
         size = 0;
-        last_position = 0;
+        delete_link = false;
     }
     Package(const char *package_data, int new_size)
     {
-        memset(data, 0, BUFFER_MESSAGE_SIZE);
+        data = new char[BUFFER_MESSAGE_SIZE]();
+        // memset(data, 0, BUFFER_MESSAGE_SIZE);
         memcpy(data, package_data, new_size);
         size = new_size;
-        last_position = 0;
+        delete_link = false;
+    }
+    ~Package()
+    {
+        // delete data;
+    }
+    void free()
+    {
+        delete data;
+    }
+    void clear_data()
+    {
+        memset(data, 0, BUFFER_MESSAGE_SIZE);
     }
     // Package(std::string package_data)
     // {

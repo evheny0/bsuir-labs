@@ -22,7 +22,7 @@ long long int find_position(std::string string, const char *substring, int last_
 
 long long int stoll_fixed(char *str_raw)
 {
-    long long result = 0;
+    long long int result = 0;
     std::stringstream str(str_raw);
     str >> result;
     return result;

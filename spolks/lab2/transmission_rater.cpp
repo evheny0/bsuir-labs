@@ -21,13 +21,15 @@ TransmissionRater::~TransmissionRater()
 
 void TransmissionRater::start_measure()
 {
-    time(&_begin);
+    _begin = std::chrono::high_resolution_clock::now();
 }
 
 double TransmissionRater::time_diff()
 {
-    time(&_end);
-    return difftime(_end, _begin);
+    auto end = std::chrono::high_resolution_clock::now();    
+    auto dur = end - _begin;
+    auto sec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() / 1000.0;
+    return sec;
 }
 
 void TransmissionRater::add_bytes(long long int bytes)
@@ -42,7 +44,7 @@ double TransmissionRater::get_rate()
 
 double TransmissionRater::get_rate_MBs()
 {
-    return get_rate() / 800000;
+    return get_rate() / 8000000;
 }
 
 void TransmissionRater::print_rate()

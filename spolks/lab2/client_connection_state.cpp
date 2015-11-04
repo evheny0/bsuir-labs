@@ -3,12 +3,19 @@
 ClientConnectionState::ClientConnectionState(Socket *socket)
 {
     _socket_ptr = socket;
+    _deleted = false;
 }
 
 ClientConnectionState::~ClientConnectionState()
 {
     _file.close();
+    puts(" * File closed");
     delete _socket_ptr;
+}
+
+Socket *ClientConnectionState::get_socket()
+{
+    return _socket_ptr;
 }
 
 void ClientConnectionState::open_file(const char *str)
@@ -24,4 +31,14 @@ std::ifstream &ClientConnectionState::get_file()
 void ClientConnectionState::set_file_position(std::ifstream::pos_type &position)
 {
     _file.seekg(position);
+}
+
+void ClientConnectionState::set_deleted(bool value)
+{
+    _deleted = value;
+}
+
+bool ClientConnectionState::is_deleted()
+{
+    return _deleted;
 }

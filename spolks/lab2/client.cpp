@@ -44,6 +44,7 @@ void Client::recieve_file()
     }
     send_last_position_to_server(last_position);
     std::ifstream::pos_type filesize = get_filesize_from_server();
+    // preallocate_file(filesize, last_position);
 
     do_file_recieve(last_position, filesize);
     std::cout << " * File downloaded\n";
@@ -55,29 +56,47 @@ void Client::do_file_recieve(long long last_position, long long filesize)
     Package package;
     TransmissionRater rater;
     while ((last_position < filesize) && !is_interrupted) {
-        package = recieve_raw_package_from(_socket_ptr);
+        recieve_raw_package_from(_socket_ptr, package);
         if (package.size == -1) {
             connect_to_server();
             continue;
         }
         rater.add_bytes(package.size);
         _file.write(package.data, package.size);
+        // write_to_file_or_buffer(package, cycle_counter);
         last_position += package.size;
         if (!(++cycle_counter % CYCLES_FOR_PRINT)) {
             std::cout << " * Downloaded: " << last_position * 100.0 / filesize << "\% :: ";
             std::cout << rater.get_rate_MBs() << " MB/s\n";
         }
     }
+    // write_rest_to_file();
+    package.free();
 }
+
+// void Client::write_to_file_or_buffer(Package &package, int iteration)
+// {
+    
+// }
 
 void Client::open_file()
 {
     _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
     if(!_file) {
-        _file.open(FILENAME_RECIEVE, std::fstream::binary | std::fstream::trunc | std::fstream::out);    
+        _file.open(FILENAME_RECIEVE, std::fstream::binary | std::fstream::trunc | std::fstream::out);
         _file.close();
         _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
     }
+}
+
+void Client::preallocate_file(std::ifstream::pos_type &size, std::ifstream::pos_type &last_position)
+{
+    _file.seekg(size);
+    // fallocate()
+    _file.write("\0", sizeof("\0"));
+    _file.close();
+    _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
+    _file.seekg(last_position);
 }
 
 void Client::send_last_position_to_server(long last_position)

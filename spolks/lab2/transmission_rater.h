@@ -4,12 +4,13 @@
 #include <ctime>
 #include <iostream>
 #include <stdio.h>
+#include <chrono>
 
 
 class TransmissionRater {
     long long int _offset;
     long long int _transfered;
-    time_t _begin, _end;
+    std::chrono::time_point<std::chrono::high_resolution_clock> _begin, _end;
 
   public:
     TransmissionRater();
