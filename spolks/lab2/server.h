@@ -38,7 +38,6 @@ class Server: public BasicSocketHandler {
     Server(const char *ip, int port);
     ~Server();
     void wait_for_connection();
-    void send_file();
     void exec();
     
   private:
@@ -52,11 +51,9 @@ class Server: public BasicSocketHandler {
     std::ifstream::pos_type get_last_position_from_client(ClientConnectionState *state);
     void wait_to_client_disconnect();
     void send_filesize_to_client(ClientConnectionState *state);
-    void send_file_to(std::ifstream &file, Socket *socket);
     void send_file_to_connected();
-    TIMEOUT_T make_timeout();
     void check_connections_absence();
-    void delete_closed_connections();
+    TIMEOUT_T make_timeout();
 };
 
 #endif // SERVER_H

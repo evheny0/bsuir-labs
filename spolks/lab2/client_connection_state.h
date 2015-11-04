@@ -21,6 +21,9 @@ class ClientConnectionState {
     void set_file_position(std::ifstream::pos_type &position);
     void set_deleted(bool value);
     bool is_deleted();
+    bool is_eof();
+    void read_file(char *buffer, long size);
+    long file_gcount();
 };
 
 #endif // CLIENT_CONNECTION_STATE_H

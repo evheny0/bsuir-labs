@@ -42,3 +42,18 @@ bool ClientConnectionState::is_deleted()
 {
     return _deleted;
 }
+
+bool ClientConnectionState::is_eof()
+{
+    return _file.eof();
+}
+
+void ClientConnectionState::read_file(char *buffer, long size)
+{
+    _file.read(buffer, size);
+}
+
+long ClientConnectionState::file_gcount()
+{
+    return _file.gcount();
+}

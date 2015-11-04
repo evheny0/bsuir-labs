@@ -22,12 +22,14 @@ void on_exit_handler(int signal_type)
 
 void prepare_exit_signal()
 {
+    #ifdef __linux__
     struct sigaction signal_handler;
     signal_handler.sa_handler = on_exit_handler;
     sigemptyset(&signal_handler.sa_mask);
     signal_handler.sa_flags = 0;
 
     sigaction(SIGINT, &signal_handler, NULL);
+    #endif
 }
 
 void do_server_stuff(const char *ip, int port)
