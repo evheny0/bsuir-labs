@@ -3,6 +3,7 @@
 
 require './sender'
 require './receiver'
+require './logger'
 
 logger = Logger.new('./log.txt')
 

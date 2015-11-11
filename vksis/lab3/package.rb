@@ -1,13 +1,15 @@
-require "./byte_stuffer"
-require "./hamming_encoder"
+require './byte_stuffer'
+require './hamming_encoder'
+require './logger'
 
 class Package
   FLAG_ARRAY = [0, 1, 1, 1, 1, 1, 1, 0]
   DESTINATION_ARRAY = [0] * 8
   SOURCE_ARRAY = [0] * 8
   CRC_ARRAY = [0] * 8
-  DATA_LOCATION = (FLAG_ARRAY.size)..(-1)
+  DATA_LOCATION = (FLAG_ARRAY.size + DESTINATION_ARRAY.size + SOURCE_ARRAY.size)..(-1)
   BITS_IN_PACKAGE = 12 * 8
+  @@weird_param_for_random_mistake_is_true = false
 
   attr_accessor :data, :encoded_message
 
@@ -19,12 +21,19 @@ class Package
   end
 
   def build
-    frame_with(@data)
+    @data_with_hamming = HammingCoder.new(@data).encode
+    # p @data_with_hamming.map(&:to_i)
+    @@weird_param_for_random_mistake_is_true = !@@weird_param_for_random_mistake_is_true
+    make_mistake if @@weird_param_for_random_mistake_is_true
+    frame_with(@data_with_hamming)
   end
 
   def parse
-    @stuffed_data = @encoded_message[DATA_LOCATION]
-    @data = to_string(@stuffed_data)
+    @raw_data = @encoded_message[DATA_LOCATION].split('')
+    @raw_data.pop
+    # p @raw_data.map(&:to_i)
+    @raw_data = HammingCoder.new(@raw_data).decode
+    @data = to_string(@raw_data)
   end
 
   def raw_data
@@ -44,11 +53,16 @@ class Package
     frame += DESTINATION_ARRAY
     frame += SOURCE_ARRAY
     frame += data
-    frame += CRC_ARRAY
     frame
   end
 
   def to_string(data)
-    data.split('').each_slice(8).map{|e| e.join.to_i(2).chr }.join
+    data.each_slice(8).map{|e| e.join.to_i(2).chr }.join
+  end
+
+  def make_mistake
+    LabLogger.info("Send with error")
+    position = rand(@data_with_hamming.size)
+    @data_with_hamming[position] = 1 - @data_with_hamming[position]
   end
 end
