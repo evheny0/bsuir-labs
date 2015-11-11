@@ -5,8 +5,6 @@ require './sender'
 require './receiver'
 require './logger'
 
-logger = Logger.new('./log.txt')
-
 if ARGV[0].nil?
   puts 'No port number given!'
   exit(1)
@@ -17,14 +15,14 @@ baud_rate = (ARGV[2] || 9600).to_i
 
 
 serial_port = Serial.new "/dev/pts/#{port}", baud_rate
-logger.info("Start at port '#{port}' with baud rate '#{baud_rate}'")
+LabLogger.info("Start at port '#{port}' with baud rate '#{baud_rate}'")
 
 
-receiver = Receiver.new serial_port, port, logger
-sender = Sender.new serial_port, port, logger
+receiver = Receiver.new serial_port, port
+sender = Sender.new serial_port, port
 receiver.start
 sender.start
 
 sender.wait_for_exit
 receiver.stop
-logger.info("Closed connection to port '#{port}'")
+LabLogger.info("Closed connection to port '#{port}'")

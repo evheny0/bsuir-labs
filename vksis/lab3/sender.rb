@@ -5,10 +5,9 @@ require './package_controller'
 
 
 class Sender
-  def initialize(serial_port, serial_port_name, logger)
+  def initialize(serial_port, serial_port_name)
     @serial_port_name = serial_port_name
     @serial_port = serial_port
-    @logger = logger
   end
 
   def start
