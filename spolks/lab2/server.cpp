@@ -3,11 +3,11 @@
 
 Server::Server(const char *ip, int port) : BasicSocketHandler(ip, port)
 {
-    _message_buffer = (char *) calloc(BUFFER_MESSAGE_SIZE, sizeof(char));
     filesize_string = to_string_fixed(filesize(FILENAME));
     std::cout << " * Filesize: " << filesize_string << "\n";
     allow_multiple_connections();
     bind_socket_to_address();
+    listen_socket();
 }
 
 Server::~Server()
@@ -38,10 +38,10 @@ void Server::bind_socket_to_address()
 
 void Server::exec()
 {
-    listen_socket();
     check_connections();
     create_new_connection();
     send_file_to_connected();
+    delete_disconnected();
     check_connections_absence();
 }
 
@@ -94,21 +94,6 @@ void Server::listen_socket()
     listen(_socket_ptr->get_obj(), SOMAXCONN);
 }
 
-void Server::wait_for_connection()
-{
-    // SOCKET sock;
-    // struct sockaddr_in client;
-    // int sockaddr_in_size = sizeof(struct sockaddr_in);
-
-    // sock = accept(_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
-    // if (sock < 0) {
-    //     puts(" - Accept failed");
-    //     exit(1);
-    // }
-    // _client_socket = new Socket(sock);
-    // puts(" * Connection accepted");
-}
-
 void Server::exchange_file_sizes(ClientConnectionState *state)
 {
     state->open_file(FILENAME);
@@ -121,28 +106,31 @@ void Server::send_file_to_connected()
 {
     ClientConnectionState *link = 0;
     std::vector<ClientConnectionState *>::iterator it;
-    std::vector<int> to_delete;
-    std::vector<int>::iterator it_to_delete;
-    int counter = 0;
-    memset(_message_buffer, 0, BUFFER_MESSAGE_SIZE);
 
     for (it = _connections_list.begin(); it != _connections_list.end(); it++) {
         if (!(*it)->is_eof()) {
             (*it)->read_file(_package.data, BUFFER_MESSAGE_SIZE);
             _package.size = (*it)->file_gcount();
             if (!send_raw_package_to((*it)->get_socket(), _package)) {
+                // back to position in file
                 continue;
             }
         } else {
             puts(" * End of file");
-            to_delete.push_back(it - _connections_list.begin());
+            _connection_id_to_delete.push_back(it - _connections_list.begin());
             link = *it;
             delete link;
         }
     }
-    for (it_to_delete = to_delete.begin(); it_to_delete != to_delete.end(); it_to_delete++) {
+}
+
+void Server::delete_disconnected()
+{
+    std::vector<int>::iterator it_to_delete = _connection_id_to_delete.begin();
+    for ( ; it_to_delete != _connection_id_to_delete.end(); it_to_delete++) {
         _connections_list.erase(_connections_list.begin() + *it_to_delete);
     }
+    _connection_id_to_delete.clear();
 }
 
 std::ifstream::pos_type Server::get_last_position_from_client(ClientConnectionState *state)

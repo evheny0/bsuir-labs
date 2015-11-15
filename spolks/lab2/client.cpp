@@ -57,7 +57,7 @@ void Client::do_file_recieve(long long last_position, long long filesize)
     TransmissionRater rater;
     while ((last_position < filesize) && !is_interrupted) {
         recieve_raw_package_from(_socket_ptr, package);
-        if (package.size == -1) {
+        if (package.size <= 0) {
             connect_to_server();
             continue;
         }

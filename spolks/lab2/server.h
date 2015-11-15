@@ -18,26 +18,26 @@ typedef DWORD TIMEOUT_T;
 // const char FILENAME[100] = "234.png";
 // const char FILENAME[100] = "Fronalpstock_big.jpg";
 // const char FILENAME[100] = "ubuntu-14.04-desktop-amd64.iso";
-// const char FILENAME[100] = "/home/eugene0/Downloads/Windows 7 PROFESSIONAL Rus x64 Game OS v1.0 by CUTA.iso";
-const char FILENAME[100] = "/home/eugene0/Downloads/ubuntu-14.04-desktop-amd64.iso";
+const char FILENAME[100] = "/home/eugene0/Downloads/Windows 7 PROFESSIONAL Rus x64 Game OS v1.0 by CUTA.iso";
+// const char FILENAME[100] = "/home/eugene0/Downloads/ubuntu-14.04-desktop-amd64.iso";
+// const char FILENAME[100] = "1.lalala";
 
 extern int is_interrupted;
 const int CYCLES_TO_CHECK_CONNECTIONS = 5;
 
 
 class Server: public BasicSocketHandler {
-    char *_message_buffer;
     fd_set _socket_set;
     std::string filesize_string;
     std::vector<Socket *> _client_sockets_list;
     std::vector<ClientConnectionState *> _connections_list;
+    std::vector<int> _connection_id_to_delete;
     Package _package;
 
 
   public:
     Server(const char *ip, int port);
     ~Server();
-    void wait_for_connection();
     void exec();
     
   private:
@@ -54,6 +54,7 @@ class Server: public BasicSocketHandler {
     void send_file_to_connected();
     void check_connections_absence();
     TIMEOUT_T make_timeout();
+    void delete_disconnected();
 };
 
 #endif // SERVER_H
