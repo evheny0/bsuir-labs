@@ -29,12 +29,13 @@ typedef int SOCKET;
 
 
 class Socket {
-    SOCKET socket_object;
+    SOCKET _socket_object;
   public:
     Socket();
     Socket(SOCKET initial_socket);
     ~Socket();
     Socket *build_tcp_socket();
+    Socket *build_udp_socket();
     SOCKET get_obj();
 };
 

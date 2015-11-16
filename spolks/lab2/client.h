@@ -24,7 +24,6 @@ class Client: public BasicSocketHandler {
     void open_file();
     void set_recieving_timeout();
     void do_file_recieve(long long last_position, long long filesize);
-    void preallocate_file(std::ifstream::pos_type &size, std::ifstream::pos_type &last_position);
 };
 
 #endif // CLIENT_H

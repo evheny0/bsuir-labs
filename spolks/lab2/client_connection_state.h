@@ -11,6 +11,7 @@ class ClientConnectionState {
     Socket *_socket_ptr;
     std::ifstream _file;
     bool _deleted;
+    long _last_read;
 
   public:
     ClientConnectionState(Socket *socket);
@@ -18,7 +19,9 @@ class ClientConnectionState {
     void open_file(const char *str);
     std::ifstream &get_file();
     Socket *get_socket();
+    SOCKET get_socket_obj();
     void set_file_position(std::ifstream::pos_type &position);
+    void revert_last_file_read();
     void set_deleted(bool value);
     bool is_deleted();
     bool is_eof();

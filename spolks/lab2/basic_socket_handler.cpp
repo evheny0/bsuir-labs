@@ -2,7 +2,7 @@
 
 BasicSocketHandler::BasicSocketHandler(const char *ip, int port)
 {
-    _socket_ptr = (new Socket())->build_tcp_socket();
+     _socket_ptr = (new Socket())->build_tcp_socket();
     _server_addres = build_server_address(ip, port);
 }
 

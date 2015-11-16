@@ -38,11 +38,13 @@ void Server::bind_socket_to_address()
 
 void Server::exec()
 {
-    check_connections();
-    create_new_connection();
-    send_file_to_connected();
-    delete_disconnected();
-    check_connections_absence();
+    while (!is_interrupted) {
+        check_connections();
+        create_new_connection();
+        send_file_to_connected();
+        delete_disconnected();
+        check_connections_absence();
+    }
 }
 
 TIMEOUT_T Server::make_timeout()
@@ -58,9 +60,9 @@ int Server::check_connections()
     FD_SET(_socket_ptr->get_obj(), &_socket_set);
 
     for (it = _connections_list.begin(); it != _connections_list.end(); it++) {
-        FD_SET((*it)->get_socket()->get_obj(), &_socket_set);
-        if ((*it)->get_socket()->get_obj() > max_socket) {
-            max_socket = (*it)->get_socket()->get_obj();
+        FD_SET((*it)->get_socket_obj(), &_socket_set);
+        if ((*it)->get_socket_obj() > max_socket) {
+            max_socket = (*it)->get_socket_obj();
         }
     }
 
@@ -112,7 +114,7 @@ void Server::send_file_to_connected()
             (*it)->read_file(_package.data, BUFFER_MESSAGE_SIZE);
             _package.size = (*it)->file_gcount();
             if (!send_raw_package_to((*it)->get_socket(), _package)) {
-                // back to position in file
+                (*it)->revert_last_file_read();
                 continue;
             }
         } else {
@@ -150,7 +152,7 @@ void Server::wait_to_client_disconnect()
 {
     puts(" * Wait to disconnect");
     char client_message[BUFFER_MESSAGE_SIZE];
-    while (recv(_connections_list[0]->get_socket()->get_obj(), client_message, BUFFER_MESSAGE_SIZE, 0));
+    while (recv(_connections_list[0]->get_socket_obj(), client_message, BUFFER_MESSAGE_SIZE, 0));
 }
 
 void Server::check_connections_absence()

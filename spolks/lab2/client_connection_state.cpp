@@ -4,6 +4,7 @@ ClientConnectionState::ClientConnectionState(Socket *socket)
 {
     _socket_ptr = socket;
     _deleted = false;
+    _last_read = 0;
 }
 
 ClientConnectionState::~ClientConnectionState()
@@ -16,6 +17,11 @@ ClientConnectionState::~ClientConnectionState()
 Socket *ClientConnectionState::get_socket()
 {
     return _socket_ptr;
+}
+
+SOCKET ClientConnectionState::get_socket_obj()
+{
+    return _socket_ptr->get_obj();
 }
 
 void ClientConnectionState::open_file(const char *str)
@@ -31,6 +37,12 @@ std::ifstream &ClientConnectionState::get_file()
 void ClientConnectionState::set_file_position(std::ifstream::pos_type &position)
 {
     _file.seekg(position);
+}
+
+void ClientConnectionState::revert_last_file_read()
+{
+    _file.seekg(-_last_read, std::ios_base::cur);
+    _last_read = 0;
 }
 
 void ClientConnectionState::set_deleted(bool value)
@@ -55,5 +67,6 @@ void ClientConnectionState::read_file(char *buffer, long size)
 
 long ClientConnectionState::file_gcount()
 {
-    return _file.gcount();
+    _last_read = _file.gcount();
+    return _last_read;
 }

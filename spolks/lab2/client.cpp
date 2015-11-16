@@ -44,7 +44,6 @@ void Client::recieve_file()
     }
     send_last_position_to_server(last_position);
     std::ifstream::pos_type filesize = get_filesize_from_server();
-    // preallocate_file(filesize, last_position);
 
     do_file_recieve(last_position, filesize);
     std::cout << " * File downloaded\n";
@@ -69,27 +68,17 @@ void Client::do_file_recieve(long long last_position, long long filesize)
             std::cout << rater.get_rate_MBs() << " MB/s\n";
         }
     }
-    package.free();
+    // package.free();
 }
 
 void Client::open_file()
 {
     _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
-    if(!_file) {
+    if (!_file) {
         _file.open(FILENAME_RECIEVE, std::fstream::binary | std::fstream::trunc | std::fstream::out);
         _file.close();
         _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
     }
-}
-
-void Client::preallocate_file(std::ifstream::pos_type &size, std::ifstream::pos_type &last_position)
-{
-    _file.seekg(size);
-    // fallocate()
-    _file.write("\0", sizeof("\0"));
-    _file.close();
-    _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
-    _file.seekg(last_position);
 }
 
 void Client::send_last_position_to_server(long last_position)

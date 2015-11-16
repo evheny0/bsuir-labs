@@ -1,6 +1,6 @@
 #include "main.h"
 
-void prepare_socket()
+void prepare_socket_lib()
 {
     #ifdef _WIN32
     WSADATA wsaData;
@@ -35,9 +35,7 @@ void prepare_exit_signal()
 void do_server_stuff(const char *ip, int port)
 {
     Server server(ip, port);
-    while (!is_interrupted) {
-        server.exec();
-    }
+    server.exec();
 }
 
 void do_client_stuff(const char *ip, int port)
@@ -51,7 +49,7 @@ void do_client_stuff(const char *ip, int port)
 
 int main(int argc, char const *argv[])
 {
-    prepare_socket();
+    prepare_socket_lib();
     prepare_exit_signal();
 
     if (argc > 3 && !strcmp(argv[1], "server")) {

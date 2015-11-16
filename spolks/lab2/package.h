@@ -12,7 +12,6 @@ static int BUFFER_MESSAGE_SIZE = 1000000;
 struct Package {
     char *data;
     long size;
-    bool delete_link;
 
     Package();
     Package(const char *package_data, int new_size);
