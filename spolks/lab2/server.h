@@ -28,6 +28,8 @@ const int CYCLES_TO_CHECK_CONNECTIONS = 5;
 
 class Server: public BasicSocketHandler {
     fd_set _socket_set;
+    Socket *_udp_socket_ptr;
+    Socket *_tcp_socket_ptr;
     std::string filesize_string;
     std::vector<Socket *> _client_sockets_list;
     std::vector<ClientConnectionState *> _connections_list;
@@ -43,8 +45,8 @@ class Server: public BasicSocketHandler {
   private:
     void allow_multiple_connections();
     struct sockaddr_in build_server_address();
-    void bind_socket_to_address();
-    void listen_socket();
+    void bind_socket_to_address(Socket *socket);
+    void listen_tcp_socket();
     int check_connections();
     void exchange_file_sizes(ClientConnectionState *state);
     void create_new_connection();

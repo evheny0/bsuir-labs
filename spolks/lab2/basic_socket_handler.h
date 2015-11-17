@@ -12,7 +12,6 @@ const int CHECK_CODE_SIZE = 1;
 class BasicSocketHandler {
 
   protected:
-    Socket *_socket_ptr;
     struct sockaddr_in _server_addres;
     char *ip;
     int port;

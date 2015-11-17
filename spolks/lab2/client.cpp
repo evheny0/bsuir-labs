@@ -2,12 +2,14 @@
 
 Client::Client(const char *ip, int port) : BasicSocketHandler(ip, port)
 {
+    _socket_ptr = (new Socket())->build_tcp_socket();
     set_recieving_timeout();
 }
 
 Client::~Client()
 {
     _file.close();
+    delete _socket_ptr;
 }
 
 void Client::set_recieving_timeout()

@@ -11,6 +11,7 @@ extern int is_interrupted;
 
 class Client: public BasicSocketHandler {
     std::fstream _file;
+    Socket *_socket_ptr;
     
   public:
     Client(const char *ip, int port);

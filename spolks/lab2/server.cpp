@@ -5,9 +5,12 @@ Server::Server(const char *ip, int port) : BasicSocketHandler(ip, port)
 {
     filesize_string = to_string_fixed(filesize(FILENAME));
     std::cout << " * Filesize: " << filesize_string << "\n";
+    _udp_socket_ptr = (new Socket())->build_udp_socket();
+    _tcp_socket_ptr = (new Socket())->build_tcp_socket();
     allow_multiple_connections();
-    bind_socket_to_address();
-    listen_socket();
+    bind_socket_to_address(_udp_socket_ptr);
+    bind_socket_to_address(_tcp_socket_ptr);
+    listen_tcp_socket();
 }
 
 Server::~Server()
@@ -16,20 +19,22 @@ Server::~Server()
     for (it = _client_sockets_list.begin(); it != _client_sockets_list.end(); it++) {
         delete *it;
     }
+    delete _udp_socket_ptr;
+    delete _tcp_socket_ptr;
 }
 
 void Server::allow_multiple_connections()
 {
     int opt = true;
     size_t size = sizeof(BUFFER_MESSAGE_SIZE);
-    setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt));
-    setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, sizeof(BUFFER_MESSAGE_SIZE));
-    getsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, (socklen_t *) &size);
+    setsockopt(_tcp_socket_ptr->get_obj(), SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt));
+    setsockopt(_tcp_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, sizeof(BUFFER_MESSAGE_SIZE));
+    getsockopt(_tcp_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, (socklen_t *) &size);
 }
 
-void Server::bind_socket_to_address()
+void Server::bind_socket_to_address(Socket *socket)
 {
-    if (bind(_socket_ptr->get_obj(), (struct sockaddr *) &_server_addres, sizeof(_server_addres)) < 0) {
+    if (bind(socket->get_obj(), (struct sockaddr *) &_server_addres, sizeof(_server_addres)) < 0) {
         puts(" - Bind failed");
         exit(1);
     }
@@ -54,10 +59,11 @@ TIMEOUT_T Server::make_timeout()
 
 int Server::check_connections()
 {
-    int active_count, max_socket = _socket_ptr->get_obj();
+    int active_count, max_socket = _tcp_socket_ptr->get_obj();
     std::vector<ClientConnectionState *>::iterator it;
     FD_ZERO(&_socket_set);
-    FD_SET(_socket_ptr->get_obj(), &_socket_set);
+    FD_SET(_tcp_socket_ptr->get_obj(), &_socket_set);
+    FD_SET(_udp_socket_ptr->get_obj(), &_socket_set);
 
     for (it = _connections_list.begin(); it != _connections_list.end(); it++) {
         FD_SET((*it)->get_socket_obj(), &_socket_set);
@@ -79,8 +85,8 @@ void Server::create_new_connection()
     struct sockaddr_in client;
     SOCKET sock;
     int sockaddr_in_size = sizeof(struct sockaddr_in);
-    if (FD_ISSET(_socket_ptr->get_obj(), &_socket_set)) {
-        sock = accept(_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
+    if (FD_ISSET(_tcp_socket_ptr->get_obj(), &_socket_set)) {
+        sock = accept(_tcp_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
         if (sock < 0) {
             puts(" - Accept failed");
             return;
@@ -89,11 +95,16 @@ void Server::create_new_connection()
         puts(" * New connection accepted");
         exchange_file_sizes(_connections_list.back());
     }
+    if (FD_ISSET(_udp_socket_ptr->get_obj(), &_socket_set)) {
+        _connections_list.push_back(new ClientConnectionState(new Socket(sock)));
+        puts(" * New connection accepted");
+        exchange_file_sizes(_connections_list.back());
+    }
 }
 
-void Server::listen_socket()
+void Server::listen_tcp_socket()
 {
-    listen(_socket_ptr->get_obj(), SOMAXCONN);
+    listen(_tcp_socket_ptr->get_obj(), SOMAXCONN);
 }
 
 void Server::exchange_file_sizes(ClientConnectionState *state)
