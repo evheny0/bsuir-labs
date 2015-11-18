@@ -37,7 +37,6 @@ void UdpClient::open_file()
 void UdpClient::do_file_recieve(long long last_position, long long filesize)
 {
     long int cycle_counter = 0, recieved_position = 0;
-    // Package _package;
     TransmissionRater rater;
     std::ifstream::pos_type position = last_position;
     while ((last_position < filesize) && !is_interrupted) {

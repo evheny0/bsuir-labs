@@ -113,6 +113,7 @@ void Server::udp_exchange_file_sizes(ClientConnectionState *state)
     std::ifstream::pos_type last_position;
     state->open_file(FILENAME);
     recieve_raw_package_from(_udp_socket_ptr, _package, BUFFER_MESSAGE_SIZE, state->get_sockaddr());
+    _package.data[_package.size] = '\0';
     std::cout << " * Last position: " << _package.data << "\n";
     last_position = stoll_fixed(_package.data);
     state->set_file_position(last_position);

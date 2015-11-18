@@ -61,11 +61,12 @@ void Client::do_file_recieve(long long last_position, long long filesize)
 
 void Client::open_file()
 {
-    _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
+    using ios = std::ios;
+    _file.open(FILENAME_RECIEVE, ios::in | ios::out | ios::binary | ios::ate);
     if (!_file) {
-        _file.open(FILENAME_RECIEVE, std::fstream::binary | std::fstream::trunc | std::fstream::out);
+        _file.open(FILENAME_RECIEVE, ios::binary | ios::trunc | ios::out);
         _file.close();
-        _file.open(FILENAME_RECIEVE, std::ios::in | std::ios::out | std::ios::binary | std::ofstream::ate);
+        _file.open(FILENAME_RECIEVE, ios::in | ios::out | ios::binary | ios::ate);
     }
 }
 
