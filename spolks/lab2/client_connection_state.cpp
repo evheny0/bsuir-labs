@@ -3,15 +3,26 @@
 ClientConnectionState::ClientConnectionState(Socket *socket)
 {
     _socket_ptr = socket;
-    _deleted = false;
     _last_read = 0;
+    _connection_type = TCP_CONNECTION;
+    _closed = false;
+}
+
+ClientConnectionState::ClientConnectionState()
+{
+    _socket_ptr = NULL;
+    _last_read = 0;
+    _connection_type = UDP_CONNECTION;
+    _closed = false;
 }
 
 ClientConnectionState::~ClientConnectionState()
 {
     _file.close();
     puts(" * File closed");
-    delete _socket_ptr;
+    if (_socket_ptr) {
+        delete _socket_ptr;
+    }
 }
 
 Socket *ClientConnectionState::get_socket()
@@ -21,7 +32,11 @@ Socket *ClientConnectionState::get_socket()
 
 SOCKET ClientConnectionState::get_socket_obj()
 {
-    return _socket_ptr->get_obj();
+    if (_socket_ptr) {
+        return _socket_ptr->get_obj();
+    } else {
+        return 0;
+    }
 }
 
 void ClientConnectionState::open_file(const char *str)
@@ -45,19 +60,19 @@ void ClientConnectionState::revert_last_file_read()
     _last_read = 0;
 }
 
-void ClientConnectionState::set_deleted(bool value)
-{
-    _deleted = value;
-}
-
-bool ClientConnectionState::is_deleted()
-{
-    return _deleted;
-}
-
 bool ClientConnectionState::is_eof()
 {
     return _file.eof();
+}
+
+bool ClientConnectionState::is_closed()
+{
+    return is_eof() || _closed;
+}
+
+void ClientConnectionState::set_closed()
+{
+    _closed = true;
 }
 
 void ClientConnectionState::read_file(char *buffer, long size)
@@ -69,4 +84,24 @@ long ClientConnectionState::file_gcount()
 {
     _last_read = _file.gcount();
     return _last_read;
+}
+
+long ClientConnectionState::last_position()
+{
+    return _file.tellg();
+}
+
+struct sockaddr *ClientConnectionState::get_sockaddr()
+{
+    return &_remote_addr;
+}
+
+bool ClientConnectionState::is_tcp()
+{
+    return _connection_type == TCP_CONNECTION;
+}
+
+bool ClientConnectionState::is_udp()
+{
+    return _connection_type == UDP_CONNECTION;
 }

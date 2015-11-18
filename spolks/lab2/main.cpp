@@ -40,9 +40,17 @@ void do_server_stuff(const char *ip, int port)
 
 void do_client_stuff(const char *ip, int port)
 {
-    Client client(ip, port);
-    client.connect_to_server();
-    client.recieve_file();
+    std::string type;
+    std::cout << "'udp' or 'tcp'?\n";
+    std::cin >> type;
+    if (type == std::string("tcp")) {
+        Client client(ip, port);
+        client.connect_to_server();
+        client.recieve_file();
+    } else {
+        UdpClient client(ip, port);
+        client.recieve_file();
+    }
 }
 
 

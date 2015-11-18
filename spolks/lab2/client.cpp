@@ -3,28 +3,13 @@
 Client::Client(const char *ip, int port) : BasicSocketHandler(ip, port)
 {
     _socket_ptr = (new Socket())->build_tcp_socket();
-    set_recieving_timeout();
+    set_recieving_timeout(_socket_ptr);
 }
 
 Client::~Client()
 {
     _file.close();
     delete _socket_ptr;
-}
-
-void Client::set_recieving_timeout()
-{
-    #ifdef __linux__
-    struct timeval timeout;      
-    timeout.tv_sec = 10;
-    timeout.tv_usec = 0;
-    #elif _WIN32
-    DWORD timeout = 1;
-    #endif
-
-    if (setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0) {
-        puts("setsockopt failed");
-    }
 }
 
 void Client::connect_to_server()
@@ -41,6 +26,7 @@ void Client::recieve_file()
 {
     open_file();
     std::ifstream::pos_type last_position = _file.tellp();
+    // wtf???
     if (last_position == -1) {
         last_position = 0;
     }

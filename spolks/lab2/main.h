@@ -4,6 +4,7 @@
 
 #include "server.h"
 #include "client.h"
+#include "udp_client.h"
 #include "socket.h"
 #include <signal.h>
 #include <streambuf>

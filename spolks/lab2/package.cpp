@@ -28,3 +28,8 @@ void Package::clear_data()
     memset(data, 0, BUFFER_MESSAGE_SIZE);
 }
 
+void Package::set_data(const char *data_in, int new_size)
+{
+    memcpy(data, data_in, new_size);
+    size = new_size;
+}
