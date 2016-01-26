@@ -23,66 +23,19 @@ typedef int SOCKET;
 
 #endif
 
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
-
-static int BUFFER_MESSAGE_SIZE = 1000000;
+#include "package.h"
 
 
-struct Package {
-    char *data;
-    long size;
-    bool delete_link;
 
-    Package()
-    {
-        data = new char[BUFFER_MESSAGE_SIZE]();
-        // memset(data, 0, BUFFER_MESSAGE_SIZE);
-        size = 0;
-        delete_link = false;
-    }
-    Package(const char *package_data, int new_size)
-    {
-        data = new char[BUFFER_MESSAGE_SIZE]();
-        // memset(data, 0, BUFFER_MESSAGE_SIZE);
-        memcpy(data, package_data, new_size);
-        size = new_size;
-        delete_link = false;
-    }
-    ~Package()
-    {
-        // delete data;
-    }
-    void free()
-    {
-        delete data;
-    }
-    void clear_data()
-    {
-        memset(data, 0, BUFFER_MESSAGE_SIZE);
-    }
-    // Package(std::string package_data)
-    // {
-    //     data = package_data;
-    //     size = data.size();
-    //     last_position = 0;
-    // }
-    // Package(std::string package_data, int package_size)
-    // {
-    //     data = package_data;
-    //     size = package_size;
-    //     last_position = 0;
-    // }
-};
 
 class Socket {
-    SOCKET socket_object;
+    SOCKET _socket_object;
   public:
     Socket();
     Socket(SOCKET initial_socket);
     ~Socket();
     Socket *build_tcp_socket();
+    Socket *build_udp_socket();
     SOCKET get_obj();
 };
 

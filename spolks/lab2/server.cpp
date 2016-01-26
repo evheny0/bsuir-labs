@@ -3,11 +3,15 @@
 
 Server::Server(const char *ip, int port) : BasicSocketHandler(ip, port)
 {
-    _message_buffer = (char *) calloc(BUFFER_MESSAGE_SIZE, sizeof(char));
-    allow_multiple_connections();
-    bind_socket_to_address();
     filesize_string = to_string_fixed(filesize(FILENAME));
     std::cout << " * Filesize: " << filesize_string << "\n";
+    _udp_socket_ptr = (new Socket())->build_udp_socket();
+    _tcp_socket_ptr = (new Socket())->build_tcp_socket();
+    allow_multiple_connections();
+    set_recieving_timeout(_udp_socket_ptr);
+    bind_socket_to_address(_udp_socket_ptr);
+    bind_socket_to_address(_tcp_socket_ptr);
+    listen_tcp_socket();
 }
 
 Server::~Server()
@@ -16,20 +20,22 @@ Server::~Server()
     for (it = _client_sockets_list.begin(); it != _client_sockets_list.end(); it++) {
         delete *it;
     }
+    delete _udp_socket_ptr;
+    delete _tcp_socket_ptr;
 }
 
 void Server::allow_multiple_connections()
 {
     int opt = true;
     size_t size = sizeof(BUFFER_MESSAGE_SIZE);
-    setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt));
-    setsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, sizeof(BUFFER_MESSAGE_SIZE));
-    getsockopt(_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, (socklen_t *) &size);
+    setsockopt(_tcp_socket_ptr->get_obj(), SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt));
+    setsockopt(_tcp_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, sizeof(BUFFER_MESSAGE_SIZE));
+    getsockopt(_tcp_socket_ptr->get_obj(), SOL_SOCKET, SO_SNDBUF, (char *) &BUFFER_MESSAGE_SIZE, (socklen_t *) &size);
 }
 
-void Server::bind_socket_to_address()
+void Server::bind_socket_to_address(Socket *socket)
 {
-    if (bind(_socket_ptr->get_obj(), (struct sockaddr *) &_server_addres, sizeof(_server_addres)) < 0) {
+    if (bind(socket->get_obj(), (struct sockaddr *) &_server_addres, sizeof(_server_addres)) < 0) {
         puts(" - Bind failed");
         exit(1);
     }
@@ -38,13 +44,13 @@ void Server::bind_socket_to_address()
 
 void Server::exec()
 {
-    listen_socket();
-    check_connections();
-    create_new_connection();
-    // send_file();
-    send_file_to_connected();
-    delete_closed_connections();
-    check_connections_absence();
+    while (!is_interrupted) {
+        check_connections();
+        create_new_connection();
+        send_file_to_connected();
+        delete_disconnected();
+        check_connections_absence();
+    }
 }
 
 TIMEOUT_T Server::make_timeout()
@@ -54,15 +60,16 @@ TIMEOUT_T Server::make_timeout()
 
 int Server::check_connections()
 {
-    int active_count, max_socket = _socket_ptr->get_obj();
+    int active_count, max_socket = _tcp_socket_ptr->get_obj();
     std::vector<ClientConnectionState *>::iterator it;
     FD_ZERO(&_socket_set);
-    FD_SET(_socket_ptr->get_obj(), &_socket_set);
+    FD_SET(_tcp_socket_ptr->get_obj(), &_socket_set);
+    FD_SET(_udp_socket_ptr->get_obj(), &_socket_set);
 
     for (it = _connections_list.begin(); it != _connections_list.end(); it++) {
-        FD_SET((*it)->get_socket()->get_obj(), &_socket_set);
-        if ((*it)->get_socket()->get_obj() > max_socket) {
-            max_socket = (*it)->get_socket()->get_obj();
+        // FD_SET((*it)->get_socket_obj(), &_socket_set);
+        if ((*it)->get_socket_obj() > max_socket) {
+            max_socket = (*it)->get_socket_obj();
         }
     }
 
@@ -79,9 +86,8 @@ void Server::create_new_connection()
     struct sockaddr_in client;
     SOCKET sock;
     int sockaddr_in_size = sizeof(struct sockaddr_in);
-    if (FD_ISSET(_socket_ptr->get_obj(), &_socket_set)) {
-        puts("Hi there");
-        sock = accept(_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
+    if (FD_ISSET(_tcp_socket_ptr->get_obj(), &_socket_set)) {
+        sock = accept(_tcp_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
         if (sock < 0) {
             puts(" - Accept failed");
             return;
@@ -90,32 +96,30 @@ void Server::create_new_connection()
         puts(" * New connection accepted");
         exchange_file_sizes(_connections_list.back());
     }
+    if (FD_ISSET(_udp_socket_ptr->get_obj(), &_socket_set)) {
+        _connections_list.push_back(new ClientConnectionState());
+        puts(" * New connection accepted");
+        udp_exchange_file_sizes(_connections_list.back());
+    }
 }
 
-void Server::listen_socket()
+void Server::listen_tcp_socket()
 {
-    listen(_socket_ptr->get_obj(), SOMAXCONN);
+    listen(_tcp_socket_ptr->get_obj(), SOMAXCONN);
 }
 
-void Server::wait_for_connection()
+void Server::udp_exchange_file_sizes(ClientConnectionState *state)
 {
-    // SOCKET sock;
-    // struct sockaddr_in client;
-    // int sockaddr_in_size = sizeof(struct sockaddr_in);
+    std::ifstream::pos_type last_position;
+    state->open_file(FILENAME);
+    recieve_raw_package_from(_udp_socket_ptr, _package, BUFFER_MESSAGE_SIZE, state->get_sockaddr());
+    _package.data[_package.size] = '\0';
+    std::cout << " * Last position: " << _package.data << "\n";
+    last_position = stoll_fixed(_package.data);
+    state->set_file_position(last_position);
 
-    // sock = accept(_socket_ptr->get_obj(), (struct sockaddr *) &client, (socklen_t *) &sockaddr_in_size);
-    // if (sock < 0) {
-    //     puts(" - Accept failed");
-    //     exit(1);
-    // }
-    // _client_socket = new Socket(sock);
-    // puts(" * Connection accepted");
-}
-
-void Server::send_file()
-{
-    send_file_to(_connections_list[0]->get_file(), _connections_list[0]->get_socket());
-    wait_to_client_disconnect();
+    _package.set_data(filesize_string.c_str(), filesize_string.size());
+    send_raw_package_to(_udp_socket_ptr, _package, state->get_sockaddr());
 }
 
 void Server::exchange_file_sizes(ClientConnectionState *state)
@@ -130,47 +134,61 @@ void Server::send_file_to_connected()
 {
     ClientConnectionState *link = 0;
     std::vector<ClientConnectionState *>::iterator it;
-    std::vector<int> to_delete;
-    std::vector<int>::iterator it_to_delete;
-    int counter = 0;
-    memset(_message_buffer, 0, BUFFER_MESSAGE_SIZE);
 
     for (it = _connections_list.begin(); it != _connections_list.end(); it++) {
-        if (!(*it)->get_file().eof()) {
-            (*it)->get_file().read(_package.data, BUFFER_MESSAGE_SIZE);
-            _package.size = (*it)->get_file().gcount();
-            // memcpy(package.data, _message_buffer, package.size);
-            send_raw_package_to((*it)->get_socket(), _package);
+        if (!(*it)->is_closed()) {
+            if ((*it)->is_tcp()) {
+                send_filepart_by_tcp(*it);
+            } else if ((*it)->is_udp()) {
+                send_filepart_by_udp(*it);
+            }
         } else {
             puts(" * End of file");
-            to_delete.push_back(it - _connections_list.begin());
+            _connection_id_to_delete.push_back(it - _connections_list.begin());
             link = *it;
             delete link;
         }
     }
-    for (it_to_delete = to_delete.begin(); it_to_delete != to_delete.end(); it_to_delete++) {
-        _connections_list.erase(_connections_list.begin() + *it_to_delete);
+}
+
+void Server::send_filepart_by_tcp(ClientConnectionState *state)
+{
+    state->read_file(_package.data, BUFFER_MESSAGE_SIZE);
+    _package.size = state->file_gcount();
+    if (!send_raw_package_to(state->get_socket(), _package)) {
+        state->revert_last_file_read();
     }
 }
 
-void Server::send_file_to(std::ifstream &file, Socket *socket)
+void Server::send_filepart_by_udp(ClientConnectionState *state)
 {
-    // std::vector<ClientConnectionState *>::iterator it;
-    // Package package;
-    // int counter = 0;
-    // memset(_message_buffer, 0, BUFFER_MESSAGE_SIZE);
-    // // while (!file.eof() && !is_interrupted) {
-    // for (it = _connections_list.begin(); it != _connections_list.end(); it++) {
-    //     (*it)->get_file().read(_message_buffer, BUFFER_MESSAGE_SIZE);
-    //     package.size = (*it)->get_file().gcount();
-    //     memcpy(package.data, _message_buffer, package.size);
-    //     send_raw_package_to((*it)->get_socket(), package);
-    //     // if (++counter == CYCLES_TO_CHECK_CONNECTIONS) {
-    //     //     counter = 0;
-    //     //     // check_connections();
-    //     //     // create_new_connection();
-    //     // }
-    // }
+    std::ifstream::pos_type position = state->last_position();
+    memcpy(_package.data, (char *) &position, sizeof(long));
+    state->read_file(_package.data + sizeof(long), UDP_BUFFER_SIZE - sizeof(long));
+    _package.size = state->file_gcount() + sizeof(long);
+
+    if (!send_raw_package_to(_udp_socket_ptr, _package, state->get_sockaddr())) {
+        state->revert_last_file_read();
+        return;
+    }
+    recieve_raw_package_from(_udp_socket_ptr, _package, UDP_BUFFER_SIZE, state->get_sockaddr());
+
+    if (_package.size > 0) {
+        memcpy((char *) &position, _package.data, sizeof(long));
+        state->set_file_position(position);
+        if (atol(filesize_string.c_str()) == position) {
+            state->set_closed();
+        }
+    }
+}
+
+void Server::delete_disconnected()
+{
+    std::vector<int>::iterator it_to_delete = _connection_id_to_delete.begin();
+    for ( ; it_to_delete != _connection_id_to_delete.end(); it_to_delete++) {
+        _connections_list.erase(_connections_list.begin() + *it_to_delete);
+    }
+    _connection_id_to_delete.clear();
 }
 
 std::ifstream::pos_type Server::get_last_position_from_client(ClientConnectionState *state)
@@ -190,23 +208,16 @@ void Server::wait_to_client_disconnect()
 {
     puts(" * Wait to disconnect");
     char client_message[BUFFER_MESSAGE_SIZE];
-    while (recv(_connections_list[0]->get_socket()->get_obj(), client_message, BUFFER_MESSAGE_SIZE, 0));
+    while (recv(_connections_list[0]->get_socket_obj(), client_message, BUFFER_MESSAGE_SIZE, 0));
 }
 
 void Server::check_connections_absence()
 {
     if (_connections_list.size() == 0) {
+        #ifdef __linux__
         sleep(1);
+        #elif _WIN32
+        Sleep(1000);
+        #endif
     }
-}
-
-bool is_marked_delete(ClientConnectionState *element)
-{
-    puts("at least check");
-    return element->is_deleted();
-}
-
-void Server::delete_closed_connections()
-{
-    // std::remove_if(_connections_list.begin(), _connections_list.end(), is_marked_delete);
 }

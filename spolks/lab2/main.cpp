@@ -1,6 +1,6 @@
 #include "main.h"
 
-void prepare_socket()
+void prepare_socket_lib()
 {
     #ifdef _WIN32
     WSADATA wsaData;
@@ -22,34 +22,42 @@ void on_exit_handler(int signal_type)
 
 void prepare_exit_signal()
 {
+    #ifdef __linux__
     struct sigaction signal_handler;
     signal_handler.sa_handler = on_exit_handler;
     sigemptyset(&signal_handler.sa_mask);
     signal_handler.sa_flags = 0;
 
     sigaction(SIGINT, &signal_handler, NULL);
+    #endif
 }
 
 void do_server_stuff(const char *ip, int port)
 {
     Server server(ip, port);
-    while (!is_interrupted) {
-        server.exec();
-    }
+    server.exec();
 }
 
 void do_client_stuff(const char *ip, int port)
 {
-    Client client(ip, port);
-    client.connect_to_server();
-    client.recieve_file();
+    std::string type;
+    std::cout << "'udp' or 'tcp'?\n";
+    std::cin >> type;
+    if (type == std::string("tcp")) {
+        Client client(ip, port);
+        client.connect_to_server();
+        client.recieve_file();
+    } else {
+        UdpClient client(ip, port);
+        client.recieve_file();
+    }
 }
 
 
 
 int main(int argc, char const *argv[])
 {
-    prepare_socket();
+    prepare_socket_lib();
     prepare_exit_signal();
 
     if (argc > 3 && !strcmp(argv[1], "server")) {
