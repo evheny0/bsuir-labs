@@ -1,4 +1,7 @@
 require "socket"
+require "pry"
+require 'pry-nav'
+
 
 class ICMPPing
   attr_accessor :host, :data, :sequence, :timeout
@@ -9,24 +12,15 @@ class ICMPPing
 
   def initialize(host)
     @host = host
+    @sequence = 0
+    @message = ''
+    @timeout = 54
+    @socket = Socket.new(Socket::PF_INET, Socket::SOCK_RAW, Socket::IPPROTO_ICMP)
   end
 
   def data=(data_input)
     @data = data_input
     @data_size = @data.size
-    @sequence = 0
-    @message = ''
-    @timeout = 100
-  end
-
-  def prepare_socket
-    @socket = Socket.new(Socket::PF_INET, Socket::SOCK_RAW, Socket::IPPROTO_ICMP)
-
-    checksum = 0
-    @message = [ICMP_TYPE, ICMP_CODE, checksum, ping_id, sequence, @data].pack(pack_string)
-
-    checksum = make_checksum(@message)
-    @message = [ICMP_TYPE, ICMP_CODE, checksum, ping_id, sequence, @data].pack(pack_string)
   end
 
   def ping
@@ -34,33 +28,45 @@ class ICMPPing
       saddr = Socket.pack_sockaddr_in(0, host)
     rescue Exception
       @socket.close unless @socket.closed?
+      return
     end
 
-    start_time = Time.now
+    loop do
+      start_time = Time.now
 
-    @socket.send(@message, 0, saddr)
+      @message = next_message
+      @socket.send(@message, 0, saddr)
+      io_array = select([@socket], nil, nil, timeout)
 
-    io_array = select([@socket], nil, nil, timeout)
+      raise 'Timeout' if io_array.nil? || io_array[0].empty?
 
-    if io_array.nil? || io_array[0].empty?
-      raise 'Timeout'
+      recv_data, sender = @socket.recvfrom(1500)
+
+      # icmp_type = recv_data.unpack('@20C')[0]
+      # icmp_code = recv_data.unpack('@21C')[0]
+
+      type = recv_data[20, 2].unpack('C2').first
+
+      # case type
+      # when ICMP_ECHOREPLY
+      #   if recv_data.length >= 28
+      ping_id, seq = recv_data[24, 4].unpack('n3')
+      #   end
+      # else
+      #   if recv_data.length > 56
+      #     ping_id, seq = recv_data[52, 4].unpack('n3')
+      #   end
+      # end
+
+      time = ((Time.now - start_time) * 1000).round(1)
+      
+      puts "#{@data_size} bytes from #{sender.ip_address}: icmp_seq=#{seq} ttl=#{ttl} time=#{time} ms"
+      sleep 1
     end
+  end
 
-    recv_data = @socket.recvfrom(1500).first
-    type = recv_data[20, 2].unpack('C2').first
-
-    case type
-      when ICMP_ECHOREPLY
-        if recv_data.length >= 28
-          ping_id, seq = recv_data[24, 4].unpack('n3')
-        end
-      else
-        if recv_data.length > 56
-          ping_id, seq = recv_data[52, 4].unpack('n3')
-        end
-    end
-
-    puts Time.now - start_time
+  def close_socket
+    @socket.close unless @socket.closed?
   end
 
   private
@@ -71,6 +77,15 @@ class ICMPPing
 
   def ping_id
     Process.pid
+  end
+
+  def next_message
+    @sequence += 1
+    checksum = 0
+    @message = [ICMP_TYPE, ICMP_CODE, checksum, ping_id, sequence, @data].pack(pack_string)
+
+    checksum = make_checksum(@message)
+    @message = [ICMP_TYPE, ICMP_CODE, checksum, ping_id, sequence, @data].pack(pack_string)
   end
 
   def make_checksum(message)
@@ -89,10 +104,21 @@ class ICMPPing
     check = (check >> 16) + (check & 0xffff)
     (~((check >> 16) + check) & 0xffff)
   end
+
+  def ttl
+    ttl ||= @socket.getsockopt(:IP, :TTL).int
+  end
 end
 
 
-ping = ICMPPing.new('google.com')
-ping.data = '-'
-ping.prepare_socket
+
+ping = ICMPPing.new(ARGV[0])
+ping.data = '*' * 56
+
+trap("INT") do
+  puts "\nShutting down."
+  ping.close_socket
+  exit
+end
+
 ping.ping
