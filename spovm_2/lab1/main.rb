@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "socket"
 require "pry"
 require 'pry-nav'
@@ -41,22 +43,8 @@ class ICMPPing
       raise 'Timeout' if io_array.nil? || io_array[0].empty?
 
       recv_data, sender = @socket.recvfrom(1500)
-
-      # icmp_type = recv_data.unpack('@20C')[0]
-      # icmp_code = recv_data.unpack('@21C')[0]
-
       type = recv_data[20, 2].unpack('C2').first
-
-      # case type
-      # when ICMP_ECHOREPLY
-      #   if recv_data.length >= 28
       ping_id, seq = recv_data[24, 4].unpack('n3')
-      #   end
-      # else
-      #   if recv_data.length > 56
-      #     ping_id, seq = recv_data[52, 4].unpack('n3')
-      #   end
-      # end
 
       time = ((Time.now - start_time) * 1000).round(1)
       
@@ -76,7 +64,7 @@ class ICMPPing
   end
 
   def ping_id
-    Process.pid
+    @ping_id ||= Process.pid
   end
 
   def next_message
@@ -109,7 +97,6 @@ class ICMPPing
     ttl ||= @socket.getsockopt(:IP, :TTL).int
   end
 end
-
 
 
 ping = ICMPPing.new(ARGV[0])
