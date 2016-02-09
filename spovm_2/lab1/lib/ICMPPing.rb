@@ -1,33 +1,10 @@
-#!/usr/bin/env ruby
-require "socket"
-require "pry"
+require 'socket'
+require 'pry'
 require 'pry-nav'
 require 'timeout'
-require 'bit-struct'
+require '../lib/IP.rb'
 
 include Socket::Constants
-
-MY_IP = ''
-
-class IP < BitStruct
-  unsigned    :ip_v,     4,     "Version"
-  unsigned    :ip_hl,    4,     "Header length"
-  unsigned    :ip_tos,   8,     "TOS"
-  unsigned    :ip_len,  16,     "Length"
-  unsigned    :ip_id,   16,     "ID"
-  unsigned    :ip_off,  16,     "Frag offset"
-  unsigned    :ip_ttl,   8,     "TTL"
-  unsigned    :ip_p,     8,     "Protocol"
-  unsigned    :ip_sum,  16,     "Checksum"
-  octets      :ip_src,  32,     "Source addr"
-  octets      :ip_dst,  32,     "Dest addr"
-  rest        :body,            "Body of message"
-
-  note "     rest is application defined message body"
-  initial_value.ip_v    = 4
-  initial_value.ip_hl   = 5
-end
-
 
 class ICMPPing
   attr_accessor :host, :data, :sequence, :timeout, :host_ip
@@ -39,7 +16,7 @@ class ICMPPing
   PORT = 33434
   MAX_HOPS = 30
 
-  def initialize(host)
+  def initialize(host, spoof_ip='')
     @host = host
     @tr_ttl  = 1
     @sequence = 0
@@ -47,6 +24,8 @@ class ICMPPing
     @timeout = 54
     @socket = Socket.new(Socket::PF_INET, Socket::SOCK_RAW, Socket::IPPROTO_ICMP)
     @socket.setsockopt(Socket::SOL_IP, Socket::IP_HDRINCL, true)
+    @spoof_ip = spoof_ip
+
   end
 
   def data=(data_input)
@@ -68,27 +47,19 @@ class ICMPPing
 
       @message = next_message
       @socket.send(@message.to_s, 0, saddr)
-      # io_array = select([@socket], nil, nil, timeout)
 
-      # raise 'Timeout' if io_array.nil? || io_array[0].empty?
-
-      # while true
-      #   recv_data, sender = @socket.recvfrom(1500, Socket::MSG_PEEK)
-      #   recv_pid, seq = recv_data[24, 4].unpack('n3')
-      #   if recv_pid == ping_id
-
+      while true
+        recv_data, sender = @socket.recvfrom(1500, Socket::MSG_PEEK)
+        recv_pid, seq = recv_data[24, 4].unpack('n3')
+        if recv_pid == ping_id
           recv_data, sender = @socket.recvfrom(1500)
-
-      #     break
-      #   end
-      # end
-      # type = recv_data[20, 2].unpack('C2').first
+          break
+        end
+      end
 
       resv_pid, seq = recv_data[24, 4].unpack('n3')
-
       time = ((Time.now - start_time) * 1000).round(1)
-
-      puts "#{@data_size} bytes from #{sender.ip_address}: icmp_seq=#{seq} ttl=#{ttl} time=#{time} ms PID="
+      puts "#{@data_size} bytes from #{sender.ip_address}: icmp_seq=#{seq} ttl=#{ttl} time=#{time} ms PID=#{resv_pid}"
       sleep 1
     end
   end
@@ -162,8 +133,7 @@ end
   end
 
   def next_message
-    @message = make_ip_header(MY_IP, @host_ip, make_icmp_header)
-    # @message = make_ip_header("", @host_ip, make_icmp_header)
+    @message = make_ip_header(@spoof_ip, @host_ip, make_icmp_header)
   end
 
   def make_icmp_header
@@ -197,36 +167,18 @@ end
   end
 
   def make_ip_header(source, dest, body)
-    ip = IP.new do |b|
-      # ip_v and ip_hl are set for us by IP class
+    ip = IP.new do |b|       # ip_v and ip_hl are set for us by IP class
       b.ip_tos  = 0
       b.ip_id   = 1
       b.ip_off  = 0
       b.ip_ttl  = 64
       b.ip_p    = Socket::IPPROTO_ICMP
-      b.ip_src  = (source)
-      b.ip_dst  = (dest)
+      b.ip_src  = source
+      b.ip_dst  = dest
       b.body    = body
       b.ip_len  = b.length
       b.ip_sum  = 0 # linux will calculate this for us (QNX won't?)
     end
     ip
   end
-
-  def inet_aton ip
-    ip.split(/\./).map(&:to_i).pack("C*")
-  end
 end
-
-
-
-ping = ICMPPing.new(ARGV[0])
-ping.data = '*' * 56
-
-trap("INT") do
-  puts "\nShutting down."
-  ping.close_socket
-  exit
-end
-
-ping.ping
