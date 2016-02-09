@@ -7,7 +7,7 @@ require 'bit-struct'
 
 include Socket::Constants
 
-MY_IP = '192.168.137.254'
+MY_IP = ''
 
 class IP < BitStruct
   unsigned    :ip_v,     4,     "Version"
@@ -162,8 +162,8 @@ end
   end
 
   def next_message
-    # @message = make_ip_header(MY_IP, @host_ip, make_icmp_header)
-    @message = make_ip_header("192.168.43.197", @host_ip, make_icmp_header)
+    @message = make_ip_header(MY_IP, @host_ip, make_icmp_header)
+    # @message = make_ip_header("", @host_ip, make_icmp_header)
   end
 
   def make_icmp_header
