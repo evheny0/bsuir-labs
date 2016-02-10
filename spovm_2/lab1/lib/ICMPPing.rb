@@ -1,8 +1,6 @@
 require 'socket'
-require 'pry'
-require 'pry-nav'
 require 'timeout'
-require '../lib/IP.rb'
+require_relative './IP.rb'
 
 include Socket::Constants
 
@@ -16,7 +14,7 @@ class ICMPPing
   PORT = 33434
   MAX_HOPS = 30
 
-  def initialize(host, spoof_ip='')
+  def initialize(host, spoof_ip=nil)
     @host = host
     @tr_ttl  = 1
     @sequence = 0
@@ -24,8 +22,7 @@ class ICMPPing
     @timeout = 54
     @socket = Socket.new(Socket::PF_INET, Socket::SOCK_RAW, Socket::IPPROTO_ICMP)
     @socket.setsockopt(Socket::SOL_IP, Socket::IP_HDRINCL, true)
-    @spoof_ip = spoof_ip
-
+    @spoof_ip = spoof_ip || Socket.ip_address_list[1].to_s
   end
 
   def data=(data_input)
