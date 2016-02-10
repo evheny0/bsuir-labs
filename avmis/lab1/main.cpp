@@ -1,7 +1,7 @@
 #include "main.h"
 
 #define INNER_SIZE 8
-#define OUTER_SIZE 300
+#define OUTER_SIZE 200
 int TO_ALIGN = 32;
 typedef float Value_t;
 
@@ -96,6 +96,7 @@ void multiply_with_manual_optimization(Value_t **matrix_a, Value_t **matrix_b, V
     Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
     /* Outer matrix mul */
     for (unsigned i = 0; i < OUTER_SIZE; i++) {
+        // #pragma omp parallel for
         for (unsigned j = 0; j < OUTER_SIZE; j++) {
             for (unsigned k = 0; k < OUTER_SIZE; k++) {
                 mul_matrices(matrix_a[k + i * OUTER_SIZE], matrix_b[j + k * OUTER_SIZE], temp_small_m);
@@ -107,7 +108,6 @@ void multiply_with_manual_optimization(Value_t **matrix_a, Value_t **matrix_b, V
 
 void inline simple_add_to_matrix(Value_t *result, Value_t *matrix_b)
 {
-    __m256 line_a, line_b, result_line;
     for (unsigned i = 0; i < INNER_SIZE * INNER_SIZE; i++) {
         result[i] += matrix_b[i];
     }
@@ -115,7 +115,6 @@ void inline simple_add_to_matrix(Value_t *result, Value_t *matrix_b)
 
 void inline simple_mul_matrices(Value_t *matrix_a, Value_t *matrix_b, Value_t *result)
 {
-    memset(result, 0, sizeof(Value_t) * INNER_SIZE * INNER_SIZE);
     // for (unsigned i = 0; i < INNER_SIZE; i++) {
     //     for (unsigned j = 0; j < INNER_SIZE; j++) {
     //         for (unsigned k = 0; k < INNER_SIZE; k++) {
@@ -123,30 +122,44 @@ void inline simple_mul_matrices(Value_t *matrix_a, Value_t *matrix_b, Value_t *r
     //         }
     //     }
     // }
+    memset(result, 0, sizeof(Value_t) * INNER_SIZE * INNER_SIZE);
 
     Value_t temp_a, *temp_resutl, *temp_b;
-    for (int i = 0; i < INNER_SIZE; i++) {
-        for (int j = 0; j < INNER_SIZE; j++) {
-            temp_a = matrix_a[i * INNER_SIZE + j];
-            temp_resutl = result + i * INNER_SIZE;
-            temp_b = matrix_b + j * INNER_SIZE;
+    for (int a = 0; a < INNER_SIZE; a++) {
+        for (int b = 0; b < INNER_SIZE; b++) {
+            temp_a = matrix_a[a * INNER_SIZE + b];
+            temp_resutl = result + a * INNER_SIZE;
+            temp_b = matrix_b + b * INNER_SIZE;
             for (int k = 0; k < INNER_SIZE; k++) {
                 temp_resutl[k] += temp_a * temp_b[k];
             }
         }
     }
-
 }
 
 void multiply_simple(Value_t **matrix_a, Value_t **matrix_b, Value_t **result)
 {
     Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
     /* Outer matrix mul */
+    Value_t temp_a, *temp_resutl, *temp_b;
     for (unsigned i = 0; i < OUTER_SIZE; i++) {
         for (unsigned j = 0; j < OUTER_SIZE; j++) {
-            for (unsigned k = 0; k < OUTER_SIZE; k++) {
-                simple_mul_matrices(matrix_a[k + i * OUTER_SIZE], matrix_b[j + k * OUTER_SIZE], temp_small_m);
-                simple_add_to_matrix(result[j + i * OUTER_SIZE], temp_small_m);
+            for (unsigned k = 0; k < OUTER_SIZE; k++) {                
+                memset(temp_small_m, 0, sizeof(Value_t) * INNER_SIZE * INNER_SIZE);
+                for (int a = 0; a < INNER_SIZE; a++) {
+                    for (int b = 0; b < INNER_SIZE; b++) {
+                        temp_a = matrix_a[k + i * OUTER_SIZE][a * INNER_SIZE + b];
+                        temp_resutl = temp_small_m + a * INNER_SIZE;
+                        temp_b = matrix_b[j + k * OUTER_SIZE] + b * INNER_SIZE;
+                        for (int k = 0; k < INNER_SIZE; k++) {
+                            temp_resutl[k] += temp_a * temp_b[k];
+                        }
+                    }
+                }
+                for (unsigned a = 0; a < INNER_SIZE * INNER_SIZE; a++) {
+                    result[j + i * OUTER_SIZE][a] += temp_small_m[a];
+                }
+
             }
         }
     }
