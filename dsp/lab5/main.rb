@@ -55,17 +55,19 @@ class CoolImage
 
   def serial_scan
     @grid.serial_scan
-    # @grid.simplify_through_dictionary
+    @grid.form_domains_by_areas
   end
 
   def store_and_display
     image.store_pixels(0,0, columns, rows, pixels)
     image.display
   end
+
 end
 
 img = CoolImage.new('1.jpg')
 img.make_grid
 img.serial_scan
-img.grid.print_all
+img.grid.print_chars
+# img.grid.print_all
 # img.store_and_display

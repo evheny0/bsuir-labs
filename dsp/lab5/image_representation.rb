@@ -1,5 +1,6 @@
 require "./dot"
 require "./utils"
+require "./domain"
 require "pry"
 
 class ImageRepresentation
@@ -51,7 +52,7 @@ class ImageRepresentation
   # end
 
     current_area = 1
-    @areas_dictionary = { current_area => [] }
+    @areas_dictionary = {}
     (0...columns).each do |col|
       (0...rows).each do |row|
         if @data[col][row].filled?
@@ -75,6 +76,18 @@ class ImageRepresentation
           end
         end
       end
+    end
+  end
+
+  def form_domains_by_areas
+    @domains = @areas_dictionary.map do |id, cells|
+      Domain.new(id, cells, self)
+    end
+  end
+
+  def print_chars
+    @domains.each do |domain|
+      puts "#{domain.id}| total_area: #{domain.total_area}, perimeter: #{domain.perimeter}, principal_axis_of_inertia: #{domain.principal_axis_of_inertia}"
     end
   end
 
