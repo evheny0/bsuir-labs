@@ -1,7 +1,7 @@
 #include "main.h"
 
 #define INNER_SIZE 8
-#define OUTER_SIZE 200
+#define OUTER_SIZE 300
 int TO_ALIGN = 32;
 typedef float Value_t;
 
@@ -93,10 +93,10 @@ void inline mul_matrices(Value_t *matrix_a, Value_t *matrix_b, Value_t *result)
 
 void multiply_with_manual_optimization(Value_t **matrix_a, Value_t **matrix_b, Value_t **result)
 {
-    Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
     /* Outer matrix mul */
+    #pragma omp parallel for
     for (unsigned i = 0; i < OUTER_SIZE; i++) {
-        // #pragma omp parallel for
+        Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
         for (unsigned j = 0; j < OUTER_SIZE; j++) {
             for (unsigned k = 0; k < OUTER_SIZE; k++) {
                 mul_matrices(matrix_a[k + i * OUTER_SIZE], matrix_b[j + k * OUTER_SIZE], temp_small_m);
@@ -139,13 +139,16 @@ void inline simple_mul_matrices(Value_t *matrix_a, Value_t *matrix_b, Value_t *r
 
 void multiply_simple(Value_t **matrix_a, Value_t **matrix_b, Value_t **result)
 {
-    Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
+    // Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
     /* Outer matrix mul */
-    Value_t temp_a, *temp_resutl, *temp_b;
+    
+    #pragma omp parallel for
     for (unsigned i = 0; i < OUTER_SIZE; i++) {
+        Value_t *temp_small_m = (Value_t *) memalign(TO_ALIGN, INNER_SIZE * INNER_SIZE * sizeof(Value_t));
         for (unsigned j = 0; j < OUTER_SIZE; j++) {
             for (unsigned k = 0; k < OUTER_SIZE; k++) {                
                 memset(temp_small_m, 0, sizeof(Value_t) * INNER_SIZE * INNER_SIZE);
+                Value_t temp_a, *temp_resutl, *temp_b;
                 for (int a = 0; a < INNER_SIZE; a++) {
                     for (int b = 0; b < INNER_SIZE; b++) {
                         temp_a = matrix_a[k + i * OUTER_SIZE][a * INNER_SIZE + b];
@@ -161,6 +164,7 @@ void multiply_simple(Value_t **matrix_a, Value_t **matrix_b, Value_t **result)
                 }
 
             }
+        // free(temp_small_m);
         }
     }
 }
