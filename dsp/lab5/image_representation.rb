@@ -1,10 +1,11 @@
 require "./dot"
 require "./utils"
 require "./domain"
+require "./classifier"
 require "pry"
 
 class ImageRepresentation
-  attr_reader :columns, :rows
+  attr_reader :columns, :rows, :domains
 
   def initialize(columns, rows)
     @columns = columns
@@ -14,6 +15,10 @@ class ImageRepresentation
 
   def [](x, y)
     @data[x][y]
+  end
+
+  def at(x)
+    @data[x / rows][x % rows]
   end
 
   def []=(x, y, value)
@@ -79,6 +84,12 @@ class ImageRepresentation
     end
   end
 
+  def filter_domains
+    @domains = @domains.select do |domain|
+      (domain.params.inject(:+) > 500) && (domain.cells.count > 50)
+    end
+  end
+
   def form_domains_by_areas
     @domains = @areas_dictionary.map do |id, cells|
       Domain.new(id, cells, self)
@@ -89,6 +100,12 @@ class ImageRepresentation
     @domains.each do |domain|
       puts "#{domain.id}| total_area: #{domain.total_area}, perimeter: #{domain.perimeter}, principal_axis_of_inertia: #{domain.principal_axis_of_inertia}"
     end
+  end
+
+  def classify
+    classifier = Classifier.new @domains
+    classifier.find_centers
+    @domains.each { |domain| domain.classify_as(classifier.classify(domain)) }
   end
 
   # def simplify_through_dictionary

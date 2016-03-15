@@ -1,10 +1,11 @@
 class Domain
-  attr_accessor :id
-  attr_reader :grid
+  attr_accessor :id, :klass
+  attr_reader :grid, :cells
   def initialize(id, cells, grid)
     @id = id
     @cells = cells
     @grid = grid
+    @klass = nil
   end
 
   def total_area
@@ -53,5 +54,27 @@ class Domain
   def principal_axis_of_inertia
     return 0 if central_point(2, 0) - central_point(0, 2) == 0
     @principal_axis_of_inertia ||= 0.5 * Math.atan((2 * central_point(1, 1)) / (central_point(2, 0) - central_point(0, 2)))
+  end
+
+  def classify_as(klass)
+    @klass = klass
+  end
+
+  def params
+    @params ||= [total_area, perimeter, density, elongation]
+  end
+
+  def params_normalized
+    # @params_normalized ||= begin
+    #                          max = params.max
+    #                          min = params.min
+    #                          params.map do |i|
+    #                            (i - min) / (max - min) * 1000
+    #                          end
+    #                        end
+    # @params_normalized ||= [total_area, elongation * 430]
+    # @params_normalized ||= [total_area / 100, perimeter / 10, density, elongation]
+    # @params_normalized ||= [perimeter]
+    params
   end
 end
