@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+$: << "./lib"
+
+if ARGV.count == 2
+  handle = ARGV[0]
+  mode = ARGV[1]
+  trap(:INT) { abort }
+  require "backchannel"
+  Backchannel.start(handle, mode)
+else
+  abort "Usage: ./chat <HANDLE> <MODE>"
+end
+
