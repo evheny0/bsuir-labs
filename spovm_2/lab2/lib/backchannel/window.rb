@@ -29,14 +29,13 @@ class Window
 
   private
 
-  def print_ip_address
-  end
+
 
   def capture_input
     content = getstr
     if content.length > 0
-      if content == "IP-list"
-        print_ip_address
+      if content == "leave"
+        @client.leave_group
       else
         message = @client.transmit(content)
         new_message(message)
@@ -54,7 +53,7 @@ class Window
   def draw_text_field
     setpos(divider_line, 0)
     attron(color_pair(COLOR_WHITE) | A_NORMAL) do
-      addstr(" [backchannel]" + " " * cols)
+      addstr(" channel" + " " * cols)
     end
 
     cursor_to_input_line
@@ -65,7 +64,7 @@ class Window
     @messages.last(window_line_size).inject(0) do |line_number, message|
       setpos(line_number, 0)
       clrtoeol
-      addstr("<#{message.handle}> #{message.content}")
+      addstr(" - #{message.handle}> #{message.content}")
       line_number + 1
     end
   end
