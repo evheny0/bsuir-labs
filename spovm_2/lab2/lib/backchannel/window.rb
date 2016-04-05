@@ -34,12 +34,19 @@ class Window
   def capture_input
     content = getstr
     if content.length > 0
-      if content == "leave"
-        @client.leave_group
-      else
-        message = @client.transmit(content)
-        new_message(message)
+      if @client.mode != "BROADCAST"
+        if content == "leave"
+          @client.leave_group
+        elsif content == "join"
+          @client.join_group
+        elsif content == "block"
+          @client.block_member_multicast
+        elsif content == "unblock"
+          @client.block_member_multicast
+        end
       end
+      message = @client.transmit(content)
+      new_message(message)
     end
   end
 
